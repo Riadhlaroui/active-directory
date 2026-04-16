@@ -2,15 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 
-interface Slide {
-	id: number;
-	title: string;
-	subtitle?: string;
-	tag: string;
-	tagColor: string;
-	content: React.ReactNode;
-}
-
 function CodeBlock({ code, lang = "bash" }: { code: string; lang?: string }) {
 	const [copied, setCopied] = useState(false);
 	return (
@@ -133,156 +124,155 @@ function BList({ items }: { items: string[] }) {
 }
 
 function HierarchyDiagram() {
-  const levels = [
-    {
-      label: "Forest",
-      icon: "🌲",
-      color: "#a78bfa",
-      desc: "Top-level security boundary",
-      badge: "NTDS.dit schema",
-    },
-    {
-      label: "Tree",
-      icon: "🌳",
-      color: "#38bdf8",
-      desc: "Contiguous namespace + transitive trust",
-      badge: "lab.local",
-    },
-    {
-      label: "Domain",
-      icon: "🏢",
-      color: "#34d399",
-      desc: "Administrative unit — DC stores & replicates",
-      badge: "Domain Controller",
-    },
-    {
-      label: "Organizational Unit",
-      icon: "📂",
-      color: "#f59e0b",
-      desc: "GPO scope + delegated admin container",
-      badge: "IT / HR / Finance",
-    },
-    {
-      label: "Objects",
-      icon: "👤",
-      color: "#f87171",
-      desc: "Users, Computers, Groups, Service Accounts",
-      badge: "Leaf nodes",
-    },
-  ];
+	const levels = [
+		{
+			label: "Forest",
+			icon: "🌲",
+			color: "#a78bfa",
+			desc: "Top-level security boundary",
+			badge: "NTDS.dit schema",
+		},
+		{
+			label: "Tree",
+			icon: "🌳",
+			color: "#38bdf8",
+			desc: "Contiguous namespace + transitive trust",
+			badge: "lab.local",
+		},
+		{
+			label: "Domain",
+			icon: "🏢",
+			color: "#34d399",
+			desc: "Administrative unit — DC stores & replicates",
+			badge: "Domain Controller",
+		},
+		{
+			label: "Organizational Unit",
+			icon: "📂",
+			color: "#f59e0b",
+			desc: "GPO scope + delegated admin container",
+			badge: "IT / HR / Finance",
+		},
+		{
+			label: "Objects",
+			icon: "👤",
+			color: "#f87171",
+			desc: "Users, Computers, Groups, Service Accounts",
+			badge: "Leaf nodes",
+		},
+	];
 
-  return (
-    <div style={{ marginTop: "0.5rem" }}>
-      {levels.map((lvl, i) => {
-        const last = i === levels.length - 1;
-        const nextColor = !last ? levels[i + 1].color : lvl.color;
-        return (
-          <div
-            key={i}
-            style={{ display: "flex", alignItems: "stretch" }}
-          >
-            {/* ── Spine column ── */}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: 24,
-                flexShrink: 0,
-              }}
-            >
-              {/* Dot */}
-              <div
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: "50%",
-                  flexShrink: 0,
-                  marginTop: 14,
-                  background: lvl.color + "20",
-                  border: `2px solid ${lvl.color}90`,
-                }}
-              />
-              {/* Connecting line to next level */}
-              {!last && (
-                <div
-                  style={{
-                    flex: 1,
-                    width: 1.5,
-                    background: `linear-gradient(to bottom, ${lvl.color}50, ${nextColor}30)`,
-                  }}
-                />
-              )}
-            </div>
+	return (
+		<div style={{ marginTop: "0.5rem" }}>
+			{levels.map((lvl, i) => {
+				const last = i === levels.length - 1;
+				const nextColor = !last ? levels[i + 1].color : lvl.color;
+				return (
+					<div key={i} style={{ display: "flex", alignItems: "stretch" }}>
+						{/* ── Spine column ── */}
+						<div
+							style={{
+								display: "flex",
+								flexDirection: "column",
+								alignItems: "center",
+								width: 24,
+								flexShrink: 0,
+							}}
+						>
+							{/* Dot */}
+							<div
+								style={{
+									width: 10,
+									height: 10,
+									borderRadius: "50%",
+									flexShrink: 0,
+									marginTop: 14,
+									background: lvl.color + "20",
+									border: `2px solid ${lvl.color}90`,
+								}}
+							/>
+							{/* Connecting line to next level */}
+							{!last && (
+								<div
+									style={{
+										flex: 1,
+										width: 1.5,
+										background: `linear-gradient(to bottom, ${lvl.color}50, ${nextColor}30)`,
+									}}
+								/>
+							)}
+						</div>
 
-            {/* ── Card ── */}
-            <div
-              style={{
-                flex: 1,
-                margin: "3px 0 3px 8px",
-                borderRadius: 6,
-                padding: "10px 14px",
-                background: lvl.color + "0d",
-                border: `1px solid ${lvl.color}35`,
-                borderLeft: `3px solid ${lvl.color}cc`,
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-              }}
-            >
-              {/* Icon */}
-              <span style={{ fontSize: "1.2rem", flexShrink: 0, lineHeight: 1 }}>
-                {lvl.icon}
-              </span>
+						{/* ── Card ── */}
+						<div
+							style={{
+								flex: 1,
+								margin: "3px 0 3px 8px",
+								borderRadius: 6,
+								padding: "10px 14px",
+								background: lvl.color + "0d",
+								border: `1px solid ${lvl.color}35`,
+								borderLeft: `3px solid ${lvl.color}cc`,
+								display: "flex",
+								alignItems: "center",
+								gap: 12,
+							}}
+						>
+							{/* Icon */}
+							<span
+								style={{ fontSize: "1.2rem", flexShrink: 0, lineHeight: 1 }}
+							>
+								{lvl.icon}
+							</span>
 
-              {/* Text */}
-              <div style={{ minWidth: 0 }}>
-                <div
-                  style={{
-                    fontSize: "0.87rem",
-                    fontWeight: 700,
-                    color: lvl.color,
-                    letterSpacing: "0.01em",
-                  }}
-                >
-                  {lvl.label}
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.74rem",
-                    color: "#475569",
-                    marginTop: 2,
-                    fontFamily: "'JetBrains Mono', monospace",
-                  }}
-                >
-                  {lvl.desc}
-                </div>
-              </div>
+							{/* Text */}
+							<div style={{ minWidth: 0 }}>
+								<div
+									style={{
+										fontSize: "0.87rem",
+										fontWeight: 700,
+										color: lvl.color,
+										letterSpacing: "0.01em",
+									}}
+								>
+									{lvl.label}
+								</div>
+								<div
+									style={{
+										fontSize: "0.74rem",
+										color: "#475569",
+										marginTop: 2,
+										fontFamily: "'JetBrains Mono', monospace",
+									}}
+								>
+									{lvl.desc}
+								</div>
+							</div>
 
-              {/* Badge */}
-              <span
-                style={{
-                  marginLeft: "auto",
-                  fontSize: "0.65rem",
-                  fontFamily: "'JetBrains Mono', monospace",
-                  padding: "2px 8px",
-                  borderRadius: 3,
-                  border: `1px solid ${lvl.color}40`,
-                  background: lvl.color + "10",
-                  color: lvl.color,
-                  whiteSpace: "nowrap",
-                  flexShrink: 0,
-                  opacity: 0.85,
-                }}
-              >
-                {lvl.badge}
-              </span>
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
+							{/* Badge */}
+							<span
+								style={{
+									marginLeft: "auto",
+									fontSize: "0.65rem",
+									fontFamily: "'JetBrains Mono', monospace",
+									padding: "2px 8px",
+									borderRadius: 3,
+									border: `1px solid ${lvl.color}40`,
+									background: lvl.color + "10",
+									color: lvl.color,
+									whiteSpace: "nowrap",
+									flexShrink: 0,
+									opacity: 0.85,
+								}}
+							>
+								{lvl.badge}
+							</span>
+						</div>
+					</div>
+				);
+			})}
+		</div>
+	);
 }
 
 function ProtoCard({
@@ -563,7 +553,7 @@ const slides = [
 						color="#38bdf8"
 						rows={[
 							["Full name", "Lightweight Directory Access Protocol"],
-							["Port", "389 (plaintext) / 636 (LDAPS — over TLS)"],
+							["Port", "389 / 636 (LDAPS — over TLS)"],
 							[
 								"Role",
 								"Read & write directory objects — the query language of AD",
@@ -579,7 +569,7 @@ const slides = [
 						name="Kerberos"
 						color="#a78bfa"
 						rows={[
-							["Version", "Kerberos v5 — default auth since Win 2000"],
+							["Version", "Kerberos v5 default auth since Win 2000"],
 							["Port", "88 (TCP/UDP)"],
 							["Role", "Ticket-based auth — no password sent over the wire"],
 							[
@@ -595,7 +585,6 @@ const slides = [
 						rows={[
 							["Port", "53 (TCP/UDP)"],
 							["Role", "Clients use DNS to locate domain controllers"],
-							["SRV records", "_ldap._tcp.lab.local, _kerberos._tcp.lab.local"],
 							["Without DNS", "Clients cannot join the domain or log in"],
 						]}
 					/>
@@ -744,7 +733,7 @@ const slides = [
 				<div className="lab-grid">
 					{[
 						{
-							name: "Windows Server 2019",
+							name: "Windows Server 2025",
 							role: "Domain Controller (victim)",
 							color: "#38bdf8",
 							specs: [
@@ -755,7 +744,7 @@ const slides = [
 							],
 						},
 						{
-							name: "Windows 10 Pro",
+							name: "Windows 10",
 							role: "Domain Client (optional)",
 							color: "#34d399",
 							specs: [
@@ -765,14 +754,10 @@ const slides = [
 							],
 						},
 						{
-							name: "Kali Linux",
+							name: "Arch Linux",
 							role: "Attacker machine",
 							color: "#f87171",
-							specs: [
-								"IP: 192.168.56.20 (static)",
-								"RAM: 2 GB",
-								"Metasploit pre-installed",
-							],
+							specs: ["IP: 192.168.56.20 (static)", "Metasploit pre-installed"],
 						},
 					].map((vm) => (
 						<div
