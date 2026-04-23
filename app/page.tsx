@@ -931,24 +931,17 @@ function makeSlides(theme: Theme) {
 						},
 						{
 							n: "09",
-							label: "Populate AD — Users, Groups, OUs",
+							label: "Populate AD Users, Groups, OUs",
 							color: "#34d399",
 						},
 						{
 							n: "10",
-							label: "AS-REP Roasting — The Misconfiguration",
+							label: "AS-REP Roasting Attack",
 							color: "#f87171",
 						},
-						{ n: "11", label: "Attacker Setup — Arch Linux", color: "#f87171" },
-						{ n: "12", label: "Step 1 — Compromise the DC", color: "#f87171" },
-						{ n: "13", label: "Step 2 — Pivot & Hit Win10", color: "#f87171" },
-						{
-							n: "14",
-							label: "Post-Exploitation & Credential Dump",
-							color: "#f87171",
-						},
-						{ n: "15", label: "Defence & Mitigation", color: "#a78bfa" },
-						{ n: "16", label: "Summary", color: "#f59e0b" },
+						{ n: "11", label: "Attacker Setup Arch Linux", color: "#f87171" },
+						{ n: "12", label: "Compromise the DC", color: "#f87171" },
+						{ n: "13", label: "Summary", color: "#f59e0b" },
 					].map((item) => (
 						<div
 							key={item.n}
@@ -1059,7 +1052,7 @@ function makeSlides(theme: Theme) {
 		{
 			id: 2,
 			title: "What is AD DS?",
-			subtitle: "Active Directory Domain Services — the engine behind AD",
+			subtitle: "Active Directory Domain Services the engine behind AD",
 			tag: "Theory",
 			tagColor: "#38bdf8",
 			content: (
