@@ -1,8 +1,27 @@
 "use client";
 
+import Image from "next/image";
+import dnsZoneIcon from "../public/dns-zones.svg";
+import authIcon from "../public/multifactor-authentication.svg";
+import ldapIcon from "../public/production-ready-database.svg";
+import NTLMIcon from "../public/user-subscriptions.svg";
+
+import forstIcon from "../public/collaborative-service.svg";
+import treeIcon from "../public/bonsai.svg";
+import domainIcon from "../public/entra-domain-services.svg";
+import ouIcon from "../public/administrative-units.svg";
+import objIcon from "../public/azure-object-understanding.svg";
+
+import archIcon from "../public/azure-linux.svg";
+import dcIcon from "../public/scvmm-management-servers.svg";
+import win10Icon from "../public/virtual-machines-classic.svg";
+
+import thoryIcon from "../public/files.svg";
+import buildIcon from "../public/load-test.svg";
+import atkIcon from "../public/power.svg";
+
 import { useState, useEffect, useCallback } from "react";
 
-// ─── THEME CONTEXT ────────────────────────────────────────────────────────────
 type Theme = "dark" | "light";
 
 function ThemeToggle({
@@ -431,36 +450,66 @@ function HierarchyDiagram({ theme }: { theme: Theme }) {
 	const levels = [
 		{
 			label: "Forest",
-			icon: "🌲",
-			color: "#a78bfa",
+			icon: (
+				<Image
+					src={forstIcon}
+					alt="Forest Icon"
+					style={{ width: "2.3rem", height: "2.3rem" }}
+				/>
+			),
+			color: "#8b9cf4",
 			desc: "Top-level security boundary",
 			badge: "NTDS.dit schema",
 		},
 		{
 			label: "Tree",
-			icon: "🌳",
-			color: "#38bdf8",
+			icon: (
+				<Image
+					src={treeIcon}
+					alt="Tree Icon"
+					style={{ width: "2.3rem", height: "2.3rem" }}
+				/>
+			),
+			color: "#5bbccc",
 			desc: "Contiguous namespace + transitive trust",
 			badge: "lab.local",
 		},
 		{
 			label: "Domain",
-			icon: "🏢",
-			color: "#34d399",
+			icon: (
+				<Image
+					src={domainIcon}
+					alt="Domain Icon"
+					style={{ width: "2.3rem", height: "2.3rem" }}
+				/>
+			),
+			color: "#5cb88a",
 			desc: "Administrative unit — DC stores & replicates",
 			badge: "Domain Controller",
 		},
 		{
 			label: "Organizational Unit",
-			icon: "📂",
-			color: "#f59e0b",
+			icon: (
+				<Image
+					src={ouIcon}
+					alt="Organizational Unit Icon"
+					style={{ width: "2.3rem", height: "2.3rem" }}
+				/>
+			),
+			color: "#c9a84c",
 			desc: "GPO scope + delegated admin container",
 			badge: "IT / HR / Finance",
 		},
 		{
 			label: "Objects",
-			icon: "👤",
-			color: "#f87171",
+			icon: (
+				<Image
+					src={objIcon}
+					alt="Objects Icon"
+					style={{ width: "2.3rem", height: "2.3rem" }}
+				/>
+			),
+			color: "#cc7070",
 			desc: "Users, Computers, Groups, Service Accounts",
 			badge: "Leaf nodes",
 		},
@@ -576,11 +625,11 @@ function ProtoCard({
 	rows,
 	theme,
 }: {
-	icon: string;
+	icon: React.ReactNode; // <-- Changed from string
 	name: string;
 	color: string;
 	rows: [string, string][];
-	theme: Theme;
+	theme: Theme; // Assuming Theme is defined elsewhere
 }) {
 	const v = getVars(theme);
 	return (
@@ -600,7 +649,8 @@ function ProtoCard({
 					marginBottom: "0.9rem",
 				}}
 			>
-				<span style={{ fontSize: "1.4rem" }}>{icon}</span>
+				{/* The span wrapper still works perfectly for positioning */}
+				<span style={{ fontSize: "1.4rem", display: "flex" }}>{icon}</span>
 				<span
 					style={{
 						fontSize: "1rem",
@@ -625,21 +675,39 @@ function AttackFlowDiagram({ theme }: { theme: Theme }) {
 		{
 			label: "Arch Linux",
 			sub: "192.168.56.1",
-			icon: "🐧",
+			icon: (
+				<Image
+					src={archIcon}
+					alt="Arch Linux Icon"
+					style={{ width: "2.3rem", height: "2.3rem" }}
+				/>
+			),
 			color: "#f87171",
 			role: "Attacker",
 		},
 		{
 			label: "Windows Server 2025",
 			sub: "192.168.56.105",
-			icon: "🗄️",
+			icon: (
+				<Image
+					src={dcIcon}
+					alt="Domain Controller Icon"
+					style={{ width: "2.3rem", height: "2.3rem" }}
+				/>
+			),
 			color: "#38bdf8",
 			role: "DC · Pivot Node",
 		},
 		{
 			label: "Windows 10",
 			sub: "192.168.56.20",
-			icon: "💻",
+			icon: (
+				<Image
+					src={win10Icon}
+					alt="Windows 10 Icon"
+					style={{ width: "2.3rem", height: "2.3rem" }}
+				/>
+			),
 			color: "#34d399",
 			role: "Final Target",
 		},
@@ -707,7 +775,14 @@ function AttackFlowDiagram({ theme }: { theme: Theme }) {
 								boxShadow: `0 0 20px ${n.color}10`,
 							}}
 						>
-							<div style={{ fontSize: "1.8rem", marginBottom: 6 }}>
+							<div
+								style={{
+									fontSize: "1.8rem",
+									marginBottom: 6,
+									display: "flex",
+									justifyContent: "center",
+								}}
+							>
 								{n.icon}
 							</div>
 							<div
@@ -826,7 +901,6 @@ function AttackFlowDiagram({ theme }: { theme: Theme }) {
 	);
 }
 
-// ─── SLIDES FACTORY ───────────────────────────────────────────────────────────
 function makeSlides(theme: Theme) {
 	const v = getVars(theme);
 	return [
@@ -1120,31 +1194,48 @@ function makeSlides(theme: Theme) {
 				>
 					<ProtoCard
 						theme={theme}
-						icon="📒"
+						icon={
+							<Image
+								src={ldapIcon}
+								alt="LDAP Icon"
+								style={{ width: "2.3rem", height: "2.3rem" }}
+							/>
+						}
 						name="LDAP"
 						color="#38bdf8"
 						rows={[
 							["Full name", "Lightweight Directory Access Protocol"],
-							["Port", "389 / 636 (LDAPS — over TLS)"],
+							["Port", "389"],
 							["Role", "Read & write directory objects"],
-							["Security", "Plain LDAP is unencrypted; LDAPS adds TLS"],
+							["Security", "LDAP is unencrypted"],
 						]}
 					/>
 					<ProtoCard
 						theme={theme}
-						icon="🎟"
+						icon={
+							<Image
+								src={authIcon}
+								alt="Authentication Icon"
+								style={{ width: "2.3rem", height: "2.3rem" }}
+							/>
+						}
 						name="Kerberos"
 						color="#a78bfa"
 						rows={[
 							["Version", "Kerberos v5 default auth since Win 2000"],
 							["Port", "88 (TCP/UDP)"],
-							["Role", "Ticket-based auth — no password sent over wire"],
-							["Key Risk", "AS-REP Roasting — crack hashes offline"],
+							["Role", "Ticket-based auth protocol, single sign-on (SSO)"],
 						]}
 					/>
 					<ProtoCard
 						theme={theme}
-						icon="🌐"
+						icon={
+							<Image
+								src={dnsZoneIcon}
+								alt="DNS Icon"
+								style={{ width: "2.3rem", height: "2.3rem" }}
+							/>
+						}
 						name="DNS"
 						color="#34d399"
 						rows={[
@@ -1155,13 +1246,18 @@ function makeSlides(theme: Theme) {
 					/>
 					<ProtoCard
 						theme={theme}
-						icon="🔐"
+						icon={
+							<Image
+								src={NTLMIcon}
+								alt="NTLM Icon"
+								style={{ width: "2.3rem", height: "2.3rem" }}
+							/>
+						}
 						name="NTLM"
 						color="#f59e0b"
 						rows={[
 							["Type", "Challenge-response hash auth (legacy)"],
-							["Port", "445 (SMB) / 135 (RPC)"],
-							["Key Risk", "Pass-the-Hash — replay captured hash"],
+							["Port", "445 (SMB)"],
 							["Status", "Disabled by default in Server 2025"],
 						]}
 					/>
@@ -1295,7 +1391,6 @@ function makeSlides(theme: Theme) {
 									"IP: 192.168.56.1 (host-only)",
 									"Metasploit + Impacket installed",
 									"AS-REP Roasts the DC first",
-									"Pivots through DC to reach Win10",
 								],
 							},
 							{
@@ -1305,8 +1400,6 @@ function makeSlides(theme: Theme) {
 								specs: [
 									"IP: 192.168.56.105 (static)",
 									"AD DS installed + lab.local forest",
-									"Windows Defender disabled for demo",
-									"Acts as pivot between Arch and Win10",
 								],
 							},
 							{
@@ -1316,8 +1409,6 @@ function makeSlides(theme: Theme) {
 								specs: [
 									"IP: 192.168.56.20 (static)",
 									"Joined to lab.local domain",
-									"Local Administrator account enabled",
-									"Final target of the attack chain",
 								],
 							},
 						].map((vm) => (
@@ -1515,27 +1606,41 @@ Get-WindowsFeature AD-Domain-Services`}
 						code={`
 $pw = ConvertTo-SecureString "Password123!" -AsPlainText -Force
 
+# Create OUs
+New-ADOrganizationalUnit -Name "IT"      -Path "DC=lab,DC=local"
+New-ADOrganizationalUnit -Name "Finance" -Path "DC=lab,DC=local"
+New-ADOrganizationalUnit -Name "HR"      -Path "DC=lab,DC=local"
+
+# Create Users
 New-ADUser -Name "Alice Martin"    -SamAccountName "amartin"   -AccountPassword $pw -Enabled $true -Department "IT"       -Title "Systems Administrator" -EmailAddress "amartin@lab.local"
 New-ADUser -Name "Bob Johnson"     -SamAccountName "bjohnson"  -AccountPassword $pw -Enabled $true -Department "Finance"  -Title "Accountant"            -EmailAddress "bjohnson@lab.local"
 New-ADUser -Name "Carol Williams"  -SamAccountName "cwilliams" -AccountPassword $pw -Enabled $true -Department "HR"       -Title "HR Manager"            -EmailAddress "cwilliams@lab.local"
 New-ADUser -Name "David Brown"     -SamAccountName "dbrown"    -AccountPassword $pw -Enabled $true -Department "IT"       -Title "Network Engineer"      -EmailAddress "dbrown@lab.local"
 New-ADUser -Name "svc-sql"         -SamAccountName "svc-sql"   -AccountPassword $pw -Enabled $true -Description "SQL Server Service Account"
 
+# Groups
 New-ADGroup -Name "IT-Admins"       -GroupScope Global -Path "DC=lab,DC=local"
 New-ADGroup -Name "Finance-Users"   -GroupScope Global -Path "DC=lab,DC=local"
 New-ADGroup -Name "HR-Users"        -GroupScope Global -Path "DC=lab,DC=local"
 New-ADGroup -Name "DB-Admins"       -GroupScope Global -Path "DC=lab,DC=local"
-"
+
 Add-ADGroupMember -Identity "IT-Admins"     -Members amartin, dbrown
 Add-ADGroupMember -Identity "Finance-Users" -Members bjohnson
 Add-ADGroupMember -Identity "HR-Users"      -Members cwilliams
 Add-ADGroupMember -Identity "DB-Admins"     -Members svc-sql
 Add-ADGroupMember -Identity "Domain Admins" -Members amartin
 
+# Shared Folders
 New-Item -Path "C:\\Shares\\Finance"  -ItemType Directory -Force
 New-Item -Path "C:\\Shares\\HR"       -ItemType Directory -Force
 New-Item -Path "C:\\Shares\\IT"       -ItemType Directory -Force
 New-Item -Path "C:\\Shares\\Backups"  -ItemType Directory -Force
+
+# Share them on the network
+New-SmbShare -Name "Finance$" -Path "C:\Shares\Finance" -FullAccess "Domain Admins" -ReadAccess "Finance-Users"
+New-SmbShare -Name "HR$"      -Path "C:\Shares\HR"      -FullAccess "Domain Admins" -ReadAccess "HR-Users"
+New-SmbShare -Name "IT$"      -Path "C:\Shares\IT"      -FullAccess "IT-Admins"
+New-SmbShare -Name "Backups$" -Path "C:\Shares\Backups"  -FullAccess "Domain Admins"
 `}
 					/>
 					<SH theme={theme} color="#f87171">
@@ -1547,6 +1652,8 @@ New-Item -Path "C:\\Shares\\Backups"  -ItemType Directory -Force
 						code={`New-ADUser -Name "w10" -SamAccountName "w10" \`
   -AccountPassword (ConvertTo-SecureString "Password123" -AsPlainText -Force) \`
   -Enabled $true
+
+Add-ADGroupMember -Identity "Domain Admins" -Members w10
 
 # THE MISCONFIGURATION: disable Kerberos pre-authentication
 Set-ADAccountControl -Identity "w10" -DoesNotRequirePreAuth $true
@@ -1928,7 +2035,6 @@ meterpreter > getuid
 	];
 }
 
-// ─── PROGRESS BAR ─────────────────────────────────────────────────────────────
 function ProgressBar({
 	current,
 	total,
@@ -1960,7 +2066,6 @@ function ProgressBar({
 	);
 }
 
-// ─── LANDING ──────────────────────────────────────────────────────────────────
 function Landing({
 	onStart,
 	theme,
@@ -2093,30 +2198,28 @@ function Landing({
 						display: "flex",
 						alignItems: "center",
 						gap: "1.5rem",
+						fontSize: "0.95rem",
 						flexWrap: "wrap",
 						justifyContent: "center",
 					}}
 				>
-					{[
-						["📋", "17 Slides"],
-						["⏱", "~30 min"],
-						["🧪", "Live Lab Demo"],
-						["🛡", "Isolated Environment"],
-					].map(([icon, label], i) => (
-						<span
-							key={i}
-							style={{
-								fontSize: "0.95rem",
-								color: theme === "dark" ? "#94a3b8" : "#64748b",
-								display: "flex",
-								alignItems: "center",
-								gap: 7,
-							}}
-						>
-							<span style={{ fontSize: "1.1rem" }}>{icon}</span>
-							{label}
-						</span>
-					))}
+					{[["Laroui Riadh Brahim & Hadj Aissa Mohammed Abderraouf"]].map(
+						([icon, label], i) => (
+							<span
+								key={i}
+								style={{
+									fontSize: "0.95rem",
+									color: theme === "dark" ? "#94a3b8" : "#64748b",
+									display: "flex",
+									alignItems: "center",
+									gap: 7,
+								}}
+							>
+								<span style={{ fontSize: "1.1rem" }}>{icon}</span>
+								{label}
+							</span>
+						),
+					)}
 				</div>
 
 				<div
@@ -2130,21 +2233,39 @@ function Landing({
 					{[
 						{
 							color: "#38bdf8",
-							icon: "📚",
-							title: "Part 0 — Theory",
+							icon: (
+								<Image
+									src={thoryIcon}
+									alt="Forest Icon"
+									style={{ width: "2.3rem", height: "2.3rem" }}
+								/>
+							),
+							title: "Part 0: Theory",
 							body: "Understand what AD DS is, how the Forest/Domain/OU hierarchy works, and the protocols (LDAP, Kerberos, DNS) that power it.",
 						},
 						{
 							color: "#34d399",
-							icon: "🖥",
-							title: "Part 1 — Build",
-							body: "Set up a Windows Server 2025 Domain Controller, create users, groups, OUs, and an intentionally misconfigured service account.",
+							icon: (
+								<Image
+									src={buildIcon}
+									alt="Build Icon"
+									style={{ width: "2.3rem", height: "2.3rem" }}
+								/>
+							),
+							title: "Part 1: Build",
+							body: "Set up a Windows Server 2025 Domain Controller, create users, groups, OUs.",
 						},
 						{
 							color: "#f87171",
-							icon: "⚡",
-							title: "Part 2 — Attack",
-							body: "AS-REP Roast the DC, crack the hash, PSExec in, pivot through the DC, and land SYSTEM on Win10 — all from Arch Linux.",
+							icon: (
+								<Image
+									src={atkIcon}
+									alt="Attack Icon"
+									style={{ width: "2.3rem", height: "2.3rem" }}
+								/>
+							),
+							title: "Part 2: Attack",
+							body: "AS-REP Roast the DC, crack the hash, PSExec in, and compromise the DC.",
 						},
 					].map((card) => (
 						<div
@@ -2265,7 +2386,6 @@ function Landing({
 	);
 }
 
-// ─── PRESENTATION ─────────────────────────────────────────────────────────────
 function Presentation({
 	onExit,
 	theme,
