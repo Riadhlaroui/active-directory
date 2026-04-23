@@ -16,7 +16,7 @@ import archIcon from "../public/azure-linux.svg";
 import dcIcon from "../public/scvmm-management-servers.svg";
 import win10Icon from "../public/virtual-machines-classic.svg";
 
-import thoryIcon from "../public/files.svg";
+import TheoryIcon from "../public/files.svg";
 import buildIcon from "../public/load-test.svg";
 import atkIcon from "../public/power.svg";
 
@@ -1462,7 +1462,7 @@ function makeSlides(theme: Theme) {
 		{
 			id: 7,
 			title: "Install AD DS",
-			subtitle: "Part 1 — Windows Server role installation",
+			subtitle: "Windows Server installation",
 			tag: "Part 1 · Setup",
 			tagColor: "#34d399",
 			content: (
@@ -1480,23 +1480,18 @@ function makeSlides(theme: Theme) {
 									},
 									{
 										n: 2,
-										title: "Rename the server",
-										desc: "SConfig → option 2 → rename to DC01, reboot",
-									},
-									{
-										n: 3,
 										title: "Exit to PowerShell",
 										desc: "SConfig → option 15 → opens PowerShell prompt",
 									},
 									{
-										n: 4,
+										n: 3,
 										title: "Install AD DS role",
-										desc: "Run Install-WindowsFeature command (see right panel)",
+										desc: "Run Install-WindowsFeature command",
 									},
 									{
-										n: 5,
+										n: 4,
 										title: "Promote to DC",
-										desc: "Run Install-ADDSForest command — server reboots automatically",
+										desc: "Run Install-ADDSForest command",
 									},
 								]}
 							/>
@@ -1504,7 +1499,7 @@ function makeSlides(theme: Theme) {
 					}
 					right={
 						<>
-							<SH theme={theme}>PowerShell commands (Server Core)</SH>
+							<SH theme={theme}>PowerShell commands</SH>
 							<CodeBlock
 								theme={theme}
 								lang="powershell"
@@ -1531,7 +1526,7 @@ Get-WindowsFeature AD-Domain-Services`}
 		{
 			id: 8,
 			title: "Promote to Domain Controller",
-			subtitle: "Part 1 — Creating the domain",
+			subtitle: "Creating the domain",
 			tag: "Part 1 · Setup",
 			tagColor: "#34d399",
 			content: (
@@ -1571,16 +1566,6 @@ Get-WindowsFeature AD-Domain-Services`}
 									},
 									{
 										n: 3,
-										title: "SYSVOL initialized",
-										desc: "Shared folder for GPOs and login scripts",
-									},
-									{
-										n: 4,
-										title: "Server reboots",
-										desc: "Machine restarts and logs in as LAB\\Administrator",
-									},
-									{
-										n: 5,
 										title: "Verify",
 										desc: "Run: Get-ADDomain — should return lab.local details",
 									},
@@ -1594,7 +1579,7 @@ Get-WindowsFeature AD-Domain-Services`}
 		{
 			id: 9,
 			title: "Populate Active Directory",
-			subtitle: "Part 1 — Users, Groups & OUs (including the misconfiguration)",
+			subtitle: "Users, Groups & OUs (including the misconfiguration)",
 			tag: "Part 1 · Setup",
 			tagColor: "#34d399",
 			content: (
@@ -1672,7 +1657,7 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 		{
 			id: 10,
 			title: "AS-REP Roasting",
-			subtitle: "Part 2 — Exploiting the Kerberos misconfiguration",
+			subtitle: "Exploiting the Kerberos misconfiguration",
 			tag: "Part 2 · Attack",
 			tagColor: "#f87171",
 			content: (
@@ -1736,7 +1721,7 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 		{
 			id: 11,
 			title: "Attacker Setup",
-			subtitle: "Part 2 — Arch Linux, Impacket & Metasploit",
+			subtitle: "Arch Linux, Impacket & Metasploit",
 			tag: "Part 2 · Attack",
 			tagColor: "#f87171",
 			content: (
@@ -1770,7 +1755,7 @@ nmap -p 445 192.168.56.105 192.168.56.20`}
 		{
 			id: 12,
 			title: "Step 1 — Compromise the DC",
-			subtitle: "Part 2 — AS-REP Roast → crack hash → PSExec → SYSTEM on DC",
+			subtitle: "AS-REP Roast → crack hash → PSExec → SYSTEM on DC",
 			tag: "Part 2 · Attack",
 			tagColor: "#f87171",
 			content: (
@@ -1841,7 +1826,7 @@ meterpreter > getuid
 		{
 			id: 13,
 			title: "Post-Exploitation",
-			subtitle: "Part 2 — What an attacker can do with SYSTEM on the DC",
+			subtitle: "What an attacker can do with SYSTEM on the DC",
 			tag: "Part 2 · Attack",
 			tagColor: "#f87171",
 			content: (
@@ -1874,94 +1859,6 @@ meterpreter > getuid
 		},
 		{
 			id: 14,
-			title: "Defence & Mitigation",
-			subtitle: "How to protect against AS-REP Roasting & lateral movement",
-			tag: "Blue Team",
-			tagColor: "#a78bfa",
-			content: (
-				<div
-					style={{
-						display: "grid",
-						gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-						gap: "1.1rem",
-					}}
-				>
-					{[
-						{
-							icon: "🔒",
-							title: "Fix the Misconfiguration",
-							color: "#a78bfa",
-							items: [
-								"Never disable Kerberos pre-authentication",
-								"Audit: Get-ADUser -Filter {DoesNotRequirePreAuth -eq $true}",
-								"Review all service accounts quarterly",
-								"Apply least-privilege to every service account",
-							],
-						},
-						{
-							icon: "🔑",
-							title: "Strong Password Policy",
-							color: "#38bdf8",
-							items: [
-								"Service accounts need 25+ char random passwords",
-								"Long passwords make offline cracking infeasible",
-								"Use Group Managed Service Accounts (gMSA)",
-								"Rotate service account passwords automatically",
-							],
-						},
-						{
-							icon: "🛡",
-							title: "Network Segmentation",
-							color: "#34d399",
-							items: [
-								"Block SMB (445) between workstations",
-								"Isolate DCs in a dedicated VLAN",
-								"Use Windows Firewall rules per segment",
-								"Prevent lateral movement with Zero Trust",
-							],
-						},
-						{
-							icon: "👁",
-							title: "Detection & Monitoring",
-							color: "#f59e0b",
-							items: [
-								"Monitor Event ID 4768 — AS-REP requests",
-								"Monitor Event ID 7045 — new service installed",
-								"Alert on anomalous Kerberos requests",
-								"Deploy a SIEM (Splunk, ELK, Wazuh)",
-							],
-						},
-					].map((card) => (
-						<div
-							key={card.title}
-							style={{
-								border: `1px solid ${card.color}50`,
-								padding: "1.15rem",
-								borderRadius: 7,
-								background: v.cardBg,
-							}}
-						>
-							<div style={{ fontSize: "1.65rem", marginBottom: "0.6rem" }}>
-								{card.icon}
-							</div>
-							<div
-								style={{
-									fontSize: "0.97rem",
-									fontWeight: 700,
-									marginBottom: "0.9rem",
-									color: card.color,
-								}}
-							>
-								{card.title}
-							</div>
-							<BList theme={theme} items={card.items} />
-						</div>
-					))}
-				</div>
-			),
-		},
-		{
-			id: 15,
 			title: "Summary",
 			subtitle: "Key takeaways",
 			tag: "Conclusion",
@@ -1973,36 +1870,53 @@ meterpreter > getuid
 					<div className="summary-cols three">
 						{[
 							{
-								title: "📚 Theory",
+								title: "Theory",
+								icon: (
+									<Image
+										src={TheoryIcon}
+										alt="Theory Icon"
+										style={{ width: "1.5rem", height: "1.5rem" }}
+									/>
+								),
 								color: "#38bdf8",
 								items: [
-									"AD DS — central directory for identity",
+									"AD DS central directory for identity",
 									"Forest → Domain → OU hierarchy",
 									"LDAP, Kerberos, DNS, NTLM protocols",
 									"Domains in ~90% of enterprises",
 								],
 							},
 							{
-								title: "🖥 We Built",
+								title: "We Built",
+								icon: (
+									<Image
+										src={buildIcon}
+										alt="Built Icon"
+										style={{ width: "1.5rem", height: "1.5rem" }}
+									/>
+								),
 								color: "#34d399",
 								items: [
-									"Windows Server 2025 DC (Server Core)",
+									"Windows Server 2025 DC",
 									"AD DS with lab.local forest",
 									"Users, Groups & OUs",
-									"AS-REP roastable w10 account",
 									"Win10 joined to the domain",
 								],
 							},
 							{
-								title: "⚡ We Attacked",
+								title: "We Attacked",
+								icon: (
+									<Image
+										src={atkIcon}
+										alt="Attack Icon"
+										style={{ width: "1.5rem", height: "1.5rem" }}
+									/>
+								),
 								color: "#f87171",
 								items: [
-									"AS-REP Roasted w10 — no creds needed",
+									"AS-REP Roasted w10",
 									"Cracked Kerberos hash → Password123",
-									"PSExec into DC → SYSTEM (session 1)",
-									"Set pivot route through DC",
-									"PSExec into Win10 via DC → SYSTEM (session 2)",
-									"Dumped credentials with Kiwi/Mimikatz",
+									"PSExec into DC → SYSTEM access",
 								],
 							},
 						].map((col) => (
@@ -2021,8 +1935,12 @@ meterpreter > getuid
 										fontWeight: 700,
 										marginBottom: "0.95rem",
 										color: col.color,
+										display: "flex",
+										alignItems: "center",
+										gap: "0.5rem",
 									}}
 								>
+									{col.icon}
 									{col.title}
 								</div>
 								<BList theme={theme} items={col.items} />
@@ -2235,7 +2153,7 @@ function Landing({
 							color: "#38bdf8",
 							icon: (
 								<Image
-									src={thoryIcon}
+									src={TheoryIcon}
 									alt="Forest Icon"
 									style={{ width: "2.3rem", height: "2.3rem" }}
 								/>
