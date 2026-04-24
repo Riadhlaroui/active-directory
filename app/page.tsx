@@ -1014,8 +1014,8 @@ function makeSlides(theme: Theme) {
 							>
 								It acts as a{" "}
 								<strong style={{ color: v.textStrong }}>central hub</strong> for
-								authentication and authorization — every login, every file
-								share, every printer access goes through AD.
+								authentication and authorization every login, every file share,
+								every printer access goes through AD.
 							</p>
 							{/* <SH theme={theme}>A simple analogy</SH>
 							<p
@@ -1036,7 +1036,7 @@ function makeSlides(theme: Theme) {
 								["Introduced", "Windows Server 2000"],
 								["Protocol", "LDAP for directory access"],
 								["Auth", "Kerberos (default) + NTLM"],
-								["Name resolution", "DNS — maps names to IPs"],
+								["Name resolution", "DNS maps names to IPs"],
 							].map(([k, val]) => (
 								<TermRow key={k} k={k} v={val} theme={theme} />
 							))}
@@ -1065,7 +1065,7 @@ function makeSlides(theme: Theme) {
 							>
 								A <strong style={{ color: v.textStrong }}>directory</strong> is
 								a hierarchical structure that stores information about objects
-								on a network — users, computers, printers, groups.
+								on a network users, computers, printers, groups.
 							</p>
 							<SH theme={theme}>What does AD DS do?</SH>
 							<p
@@ -1093,10 +1093,9 @@ function makeSlides(theme: Theme) {
 							<SH theme={theme}>AD DS vs AD — what&apos;s the difference?</SH>
 							{[
 								["AD", "Umbrella brand for all Microsoft directory services"],
-								["AD DS", "The core role — stores & manages domain objects"],
+								["AD DS", "The core role stores & manages domain objects"],
 								["AD LDS", "Lightweight version for app-specific directories"],
-								["AD CS", "Certificate Services — issues PKI certificates"],
-								["AD FS", "Federation Services — SSO with external partners"],
+								["AD FS", "Federation Services SSO with external partners"],
 							].map(([k, val]) => (
 								<TermRow key={k} k={k} v={val} theme={theme} />
 							))}
@@ -1271,11 +1270,11 @@ function makeSlides(theme: Theme) {
 							<BList
 								theme={theme}
 								items={[
-									"Single Sign-On (SSO) — log in once, access everything",
+									"Single Sign-On (SSO) log in once, access everything",
 									"Centralised user provisioning and deprovisioning",
-									"Group Policy — enforce password rules, screen locks, software",
-									"File share permissions — mapped drives via GPO",
-									"Email (Exchange / M365) — mailboxes tied to AD accounts",
+									"Group Policy enforce password rules, screen locks, software",
+									"File share permissions mapped drives via GPO",
+									"Email mailboxes tied to AD accounts",
 								]}
 							/>
 							<SH theme={theme}>Typical AD roles in an org</SH>
@@ -1311,6 +1310,7 @@ function makeSlides(theme: Theme) {
 								</strong>
 								.
 							</p>
+							{/*
 							<SH theme={theme}>Notable AD-related breaches</SH>
 							{[
 								[
@@ -1347,7 +1347,7 @@ function makeSlides(theme: Theme) {
 									</div>
 								</div>
 							))}
-							{/* <Alert type="danger" theme={theme}>
+							 <Alert type="danger" theme={theme}>
 								This is why understanding AD from both sides — admin and
 								attacker — is essential for any network professional.
 							</Alert> */}
@@ -1560,7 +1560,7 @@ Get-WindowsFeature AD-Domain-Services`}
 									{
 										n: 3,
 										title: "Verify",
-										desc: "Run: Get-ADDomain — should return lab.local details",
+										desc: "Run: Get-ADDomain should return lab.local details",
 									},
 								]}
 							/>
@@ -1640,9 +1640,9 @@ Set-ADAccountControl -Identity "w10" -DoesNotRequirePreAuth $true
 Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 					/>
 					<Alert type="danger" theme={theme}>
-						This makes the account AS-REP Roastable — an unauthenticated
-						attacker can request a Kerberos hash from the DC and crack it
-						offline to obtain valid domain credentials.
+						This makes the account AS-REP Roastable an unauthenticated attacker
+						can request a Kerberos hash from the DC and crack it offline to
+						obtain valid domain credentials.
 					</Alert>
 				</>
 			),
@@ -1662,7 +1662,7 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 								style={{ fontSize: "1rem", color: v.bodyText, lineHeight: 1.8 }}
 							>
 								Kerberos normally requires a client to prove its identity before
-								the DC hands out a ticket — this is called{" "}
+								the DC hands out a ticket this is called{" "}
 								<strong style={{ color: v.textStrong }}>
 									pre-authentication
 								</strong>
