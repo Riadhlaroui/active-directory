@@ -484,7 +484,7 @@ function HierarchyDiagram({ theme }: { theme: Theme }) {
 				/>
 			),
 			color: "#5cb88a",
-			desc: "Administrative unit — DC stores & replicates",
+			desc: "Administrative unit DC stores & replicates",
 			badge: "Domain Controller",
 		},
 		{
@@ -1041,7 +1041,7 @@ function makeSlides(theme: Theme) {
 								<TermRow key={k} k={k} v={val} theme={theme} />
 							))}
 							<Alert type="info" theme={theme}>
-								AD is present in ~90% of Fortune 500 companies — making it the
+								AD is present in ~90% of Fortune 500 companies making it the
 								single most targeted service in enterprise security.
 							</Alert>
 						</>
@@ -1090,7 +1090,7 @@ function makeSlides(theme: Theme) {
 					}
 					right={
 						<>
-							<SH theme={theme}>AD DS vs AD — what&apos;s the difference?</SH>
+							<SH theme={theme}>AD DS vs AD what&apos;s the difference?</SH>
 							{[
 								["AD", "Umbrella brand for all Microsoft directory services"],
 								["AD DS", "The core role stores & manages domain objects"],
@@ -1123,23 +1123,23 @@ function makeSlides(theme: Theme) {
 							<SH theme={theme}>Each level explained</SH>
 							{[
 								[
-									"🌲 Forest",
+									"Forest",
 									"The security boundary. All domains share one schema and Global Catalog.",
 								],
 								[
-									"🌳 Tree",
+									"Tree",
 									"One or more domains connected by automatic two-way transitive trusts, sharing a contiguous namespace.",
 								],
 								[
-									"🏢 Domain",
+									"Domain",
 									"The administrative unit. A domain controller (DC) stores and replicates the domain database (NTDS.dit).",
 								],
 								[
-									"📂 OU",
-									"Organizational Unit — a container used to delegate admin rights and apply Group Policy.",
+									"OU",
+									"Organizational Unit a container used to delegate admin rights and apply Group Policy.",
 								],
 								[
-									"👤 Objects",
+									"Objects",
 									"Leaf objects: Users, Computers, Groups, Printers, Service Accounts.",
 								],
 							].map(([k, val]) => (
@@ -1282,7 +1282,7 @@ function makeSlides(theme: Theme) {
 								["Domain Admin", "Full control over the domain"],
 								[
 									"Enterprise Admin",
-									"Forest-wide admin — highest possible privilege",
+									"Forest-wide admin highest possible privilege",
 								],
 								[
 									"Service Account",
@@ -1290,7 +1290,7 @@ function makeSlides(theme: Theme) {
 								],
 								[
 									"Regular User",
-									"Standard domain user — least-privilege baseline",
+									"Standard domain user least-privilege baseline",
 								],
 							].map(([k, val]) => (
 								<TermRow key={k} k={k} v={val} theme={theme} minW={140} />
@@ -1526,7 +1526,7 @@ Get-WindowsFeature AD-Domain-Services`}
 				<TwoCol
 					left={
 						<>
-							<SH theme={theme}>PowerShell — one command</SH>
+							<SH theme={theme}>PowerShell one command</SH>
 							<CodeBlock
 								theme={theme}
 								lang="powershell"
@@ -1622,7 +1622,7 @@ New-SmbShare -Name "Backups$" -Path "C:\Shares\Backups"  -FullAccess "Domain Adm
 `}
 					/>
 					<SH theme={theme} color="#f87171">
-						Intentional Misconfiguration — AS-REP Roastable Account
+						Intentional Misconfiguration AS-REP Roastable Account
 					</SH>
 					<CodeBlock
 						theme={theme}
@@ -1699,7 +1699,7 @@ Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 						<>
 							<SH theme={theme}>Technical Details</SH>
 							{[
-								["Protocol", "Kerberos v5 — port 88"],
+								["Protocol", "Kerberos v5 port 88"],
 								["Trigger", "DoesNotRequirePreAuth = True"],
 								["Tool", "Impacket GetNPUsers"],
 								["Crack tool", "john / hashcat + rockyou.txt"],
@@ -1747,7 +1747,7 @@ nmap -p 445 192.168.56.105 192.168.56.20`}
 		},
 		{
 			id: 12,
-			title: "Step 1 — Compromise the DC",
+			title: "Step 1 Compromise the DC",
 			subtitle: "AS-REP Roast → crack hash → PSExec → SYSTEM on DC",
 			tag: "Part 2 · Attack",
 			tagColor: "#f87171",
@@ -1757,7 +1757,7 @@ nmap -p 445 192.168.56.105 192.168.56.20`}
 					<TwoCol
 						left={
 							<>
-								<SH theme={theme}>Phase A — AS-REP Roast</SH>
+								<SH theme={theme}>Phase A AS-REP Roast</SH>
 								<CodeBlock
 									theme={theme}
 									lang="bash"
@@ -1772,7 +1772,7 @@ GetNPUsers.py lab.local/ \\
 # Output:
 # $krb5asrep$23$w10@LAB.LOCAL:a3f9...`}
 								/>
-								<SH theme={theme}>Phase B — Crack the hash offline</SH>
+								<SH theme={theme}>Phase B Crack the hash offline</SH>
 								<CodeBlock
 									theme={theme}
 									lang="bash"
@@ -1784,9 +1784,7 @@ john /tmp/hash.txt --show
 						}
 						right={
 							<>
-								<SH theme={theme}>
-									Phase C — PSExec into DC with cracked creds
-								</SH>
+								<SH theme={theme}>Phase C PSExec into DC with cracked creds</SH>
 								<CodeBlock
 									theme={theme}
 									lang="bash"
