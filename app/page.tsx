@@ -2420,7 +2420,7 @@ function Presentation({
 						color: v.textMuted,
 						fontFamily: "'JetBrains Mono', monospace",
 						fontSize: "0.84rem",
-						padding: "5px 14px",
+						padding: "4px 14px",
 						cursor: "pointer",
 						borderRadius: 3,
 						transition: "all 0.2s",
@@ -2462,7 +2462,7 @@ function Presentation({
 				style={{
 					flex: 1,
 					overflowY: "auto",
-					padding: "2.75rem 2rem",
+					padding: "1.75rem 1rem",
 					position: "relative",
 					zIndex: 1,
 					display: "flex",
