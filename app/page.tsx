@@ -163,7 +163,7 @@ function CodeBlock({
 			>
 				<span
 					style={{
-						fontSize: "0.73rem",
+						fontSize: "0.93rem",
 						color: v.accent,
 						letterSpacing: "0.1em",
 						fontFamily: "'JetBrains Mono', monospace",
@@ -362,7 +362,7 @@ function SH({
 				letterSpacing: "0.2em",
 				color: c,
 				textTransform: "uppercase" as const,
-				margin: "1.35rem 0 0.65rem",
+				margin: "1.45rem 0 0.75rem",
 				borderLeft: `2px solid ${c}`,
 				paddingLeft: 10,
 				fontFamily: "'JetBrains Mono', monospace",
@@ -1590,39 +1590,89 @@ New-ADOrganizationalUnit -Name "Finance" -Path "DC=lab,DC=local"
 New-ADOrganizationalUnit -Name "HR"      -Path "DC=lab,DC=local"
 
 # Create Users
-New-ADUser -Name "Alice Martin"    -SamAccountName "amartin"   -AccountPassword $pw -Enabled $true -Department "IT"       -Title "Systems Administrator" -EmailAddress "amartin@lab.local"
-New-ADUser -Name "Bob Johnson"     -SamAccountName "bjohnson"  -AccountPassword $pw -Enabled $true -Department "Finance"  -Title "Accountant"            -EmailAddress "bjohnson@lab.local"
-New-ADUser -Name "Carol Williams"  -SamAccountName "cwilliams" -AccountPassword $pw -Enabled $true -Department "HR"       -Title "HR Manager"            -EmailAddress "cwilliams@lab.local"
-New-ADUser -Name "David Brown"     -SamAccountName "dbrown"    -AccountPassword $pw -Enabled $true -Department "IT"       -Title "Network Engineer"      -EmailAddress "dbrown@lab.local"
-New-ADUser -Name "svc-sql"         -SamAccountName "svc-sql"   -AccountPassword $pw -Enabled $true -Description "SQL Server Service Account"
+New-ADUser -Name "Alice Martin"   -SamAccountName "amartin"   -AccountPassword $pw -Enabled $true -Department "IT"      -Title "Systems Administrator"
+New-ADUser -Name "Bob Johnson"    -SamAccountName "bjohnson"  -AccountPassword $pw -Enabled $true -Department "Finance" -Title "Accountant"
+New-ADUser -Name "Carol Williams" -SamAccountName "cwilliams" -AccountPassword $pw -Enabled $true -Department "HR"      -Title "HR Manager"
+New-ADUser -Name "David Brown"    -SamAccountName "dbrown"    -AccountPassword $pw -Enabled $true -Department "IT"      -Title "Network Engineer"
 
-# Groups
-New-ADGroup -Name "IT-Admins"       -GroupScope Global -Path "DC=lab,DC=local"
-New-ADGroup -Name "Finance-Users"   -GroupScope Global -Path "DC=lab,DC=local"
-New-ADGroup -Name "HR-Users"        -GroupScope Global -Path "DC=lab,DC=local"
-New-ADGroup -Name "DB-Admins"       -GroupScope Global -Path "DC=lab,DC=local"
-
+# Groups & Memberships
+New-ADGroup -Name "IT-Admins"     -GroupScope Global -Path "DC=lab,DC=local"
+New-ADGroup -Name "Finance-Users" -GroupScope Global -Path "DC=lab,DC=local"
 Add-ADGroupMember -Identity "IT-Admins"     -Members amartin, dbrown
 Add-ADGroupMember -Identity "Finance-Users" -Members bjohnson
-Add-ADGroupMember -Identity "HR-Users"      -Members cwilliams
-Add-ADGroupMember -Identity "DB-Admins"     -Members svc-sql
 Add-ADGroupMember -Identity "Domain Admins" -Members amartin
 
 # Shared Folders
-New-Item -Path "C:\\Shares\\Finance"  -ItemType Directory -Force
-New-Item -Path "C:\\Shares\\HR"       -ItemType Directory -Force
-New-Item -Path "C:\\Shares\\IT"       -ItemType Directory -Force
-New-Item -Path "C:\\Shares\\Backups"  -ItemType Directory -Force
-
-# Share them on the network
 New-SmbShare -Name "Finance$" -Path "C:\Shares\Finance" -FullAccess "Domain Admins" -ReadAccess "Finance-Users"
-New-SmbShare -Name "HR$"      -Path "C:\Shares\HR"      -FullAccess "Domain Admins" -ReadAccess "HR-Users"
 New-SmbShare -Name "IT$"      -Path "C:\Shares\IT"      -FullAccess "IT-Admins"
-New-SmbShare -Name "Backups$" -Path "C:\Shares\Backups"  -FullAccess "Domain Admins"
 `}
 					/>
+
+					<SH theme={theme} color="#38bdf8">
+						Join Windows 10 to the Domain
+					</SH>
+
+					<>
+						<p
+							style={{
+								fontSize: "0.95rem",
+								color: v.bodyText,
+								lineHeight: 1.7,
+								marginBottom: "0.75rem",
+							}}
+						>
+							On the{" "}
+							<strong style={{ color: v.textStrong }}>Windows 10 VM</strong>,
+							run as Administrator:
+						</p>
+						<CodeBlock
+							theme={theme}
+							lang="powershell"
+							code={`# Point DNS at the DC first
+$adapter = Get-NetAdapter | Where-Object {$_.Status -eq "Up"}
+Set-DnsClientServerAddress \`
+  -InterfaceIndex $adapter.InterfaceIndex \`
+  -ServerAddresses 192.168.56.105
+
+# Join the domain
+Add-Computer -DomainName "lab.local" \`
+  -Credential LAB\\Administrator \`
+  -Restart`}
+						/>
+					</>
+
+					<>
+						<p
+							style={{
+								fontSize: "0.95rem",
+								color: v.bodyText,
+								lineHeight: 1.7,
+								marginBottom: "0.75rem",
+							}}
+						>
+							After reboot, verify on the{" "}
+							<strong style={{ color: v.textStrong }}>DC</strong>:
+						</p>
+						<CodeBlock
+							theme={theme}
+							lang="powershell"
+							code={`
+Get-ADComputer -Filter * | Select Name, DNSHostName
+
+# Output:
+# Name          DNSHostName
+# ----          -----------
+# DC01          DC01.lab.local
+# WINDOWS10     WINDOWS10.lab.local`}
+						/>
+						<Alert type="info" theme={theme}>
+							Once joined, Win10 users authenticate via Kerberos through the DC
+							— every login goes through AD.
+						</Alert>
+					</>
+
 					<SH theme={theme} color="#f87171">
-						Intentional Misconfiguration AS-REP Roastable Account
+						Intentional Misconfiguration — AS-REP Roastable Account
 					</SH>
 					<CodeBlock
 						theme={theme}
@@ -1640,9 +1690,9 @@ Set-ADAccountControl -Identity "w10" -DoesNotRequirePreAuth $true
 Get-ADUser w10 -Properties DoesNotRequirePreAuth`}
 					/>
 					<Alert type="danger" theme={theme}>
-						This makes the account AS-REP Roastable an unauthenticated attacker
-						can request a Kerberos hash from the DC and crack it offline to
-						obtain valid domain credentials.
+						This makes the account AS-REP Roastable — an unauthenticated
+						attacker can request a Kerberos hash from the DC and crack it
+						offline to obtain valid domain credentials.
 					</Alert>
 				</>
 			),
@@ -2544,7 +2594,7 @@ export default function Home() {
 			<style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap');
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Inter', system-ui, sans-serif; font-size: 18px; line-height: 1.6; min-height: 100vh; overflow-x: hidden; }
         @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
         @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
         @keyframes slideIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:none;} }
