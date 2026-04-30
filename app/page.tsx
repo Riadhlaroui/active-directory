@@ -2587,7 +2587,7 @@ function Presentation({
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function Home() {
 	const [started, setStarted] = useState(false);
-	const [theme, setTheme] = useState<Theme>("dark");
+	const [theme, setTheme] = useState<Theme>("light");
 
 	return (
 		<>
