@@ -17,21 +17,29 @@ import { DecorIcon } from "./ui/decor-icon";
 import Image from "next/image";
 
 const FILE_EXTENSIONS = [
-	{ ext: ".md", label: "Markdown", icon: "/icons/MD.png" },
-	{ ext: ".txt", label: "Text", icon: "/icons/TXT.png" },
-	{ ext: ".ts", label: "TypeScript", icon: "/icons/TS.png" },
-	{ ext: ".tsx", label: "TSX", icon: "/icons/TSX.png" },
-	{ ext: ".js", label: "JavaScript", icon: "/icons/JS.png" },
-	{ ext: ".jsx", label: "JSX", icon: "/icons/JSX.png" },
-	{ ext: ".json", label: "JSON", icon: "/icons/JSON.png" },
-	{ ext: ".css", label: "CSS", icon: "/icons/CSS.png" },
-	{ ext: ".html", label: "HTML", icon: "/icons/HTML.png" },
-	{ ext: ".py", label: "Python", icon: "/icons/PY.png" },
-	{ ext: ".sh", label: "Shell", icon: "/icons/SH.png" },
+	{ ext: ".md", label: "Markdown", icon: "vscode-icons:file-type-markdown" },
+	{ ext: ".txt", label: "Text", icon: "vscode-icons:file-type-text" },
+	{
+		ext: ".ts",
+		label: "TypeScript",
+		icon: "vscode-icons:file-type-typescript-official",
+	},
+	{ ext: ".tsx", label: "TSX", icon: "vscode-icons:file-type-reactts" },
+	{
+		ext: ".js",
+		label: "JavaScript",
+		icon: "vscode-icons:file-type-js-official",
+	},
+	{ ext: ".jsx", label: "JSX", icon: "vscode-icons:file-type-reactjs" },
+	{ ext: ".json", label: "JSON", icon: "vscode-icons:file-type-json" },
+	{ ext: ".css", label: "CSS", icon: "vscode-icons:file-type-css" },
+	{ ext: ".html", label: "HTML", icon: "vscode-icons:file-type-html" },
+	{ ext: ".py", label: "Python", icon: "vscode-icons:file-type-python" },
+	{ ext: ".sh", label: "Shell", icon: "vscode-icons:file-type-shell" },
 ];
 type TreeNode = {
-	id: string; // slug used in GitHub path
-	name: string; // display name
+	id: string;
+	name: string;
 	depth: number;
 	children?: TreeNode[];
 };
@@ -39,7 +47,6 @@ type TreeNode = {
 type Props = {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	/** Flat list of top-level project folders */
 	projects: { id: string; name: string }[];
 	onCreated?: () => void;
 };
@@ -99,7 +106,7 @@ export function CreateEntryDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="w-105 bg-[radial-gradient(50%_80%_at_25%_0%,--theme(--color-foreground/.1),transparent)] rounded-none">
+			<DialogContent className="w-165 bg-[radial-gradient(50%_80%_at_25%_0%,--theme(--color-foreground/.1),transparent)] rounded-none">
 				<div className="absolute -inset-y-4 -left-px w-px bg-border" />
 				<div className="absolute -inset-y-4 -right-px w-px bg-border" />
 				<div className="absolute -inset-x-4 -top-px h-px bg-border" />
@@ -112,7 +119,7 @@ export function CreateEntryDialog({
 					</DialogTitle>
 				</DialogHeader>
 
-				<div className="px-5 py-4 flex flex-col gap-4">
+				<div className="px-2 py-2 flex flex-col gap-4">
 					<div className="grid grid-cols-2 gap-2">
 						<button
 							onClick={() => setType("file")}
