@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import {
 	LayoutGridIcon,
-	BriefcaseIcon,
 	UsersIcon,
 	PlugIcon,
 	HelpCircleIcon,
@@ -26,7 +25,7 @@ export const navGroups: SidebarNavGroup[] = [
 		items: [
 			{
 				title: "Dashboard",
-				path: "#/dashboard",
+				path: "/dashboard",
 				icon: <LayoutGridIcon />,
 				isActive: true,
 			},
@@ -37,12 +36,12 @@ export const navGroups: SidebarNavGroup[] = [
 		items: [
 			{
 				title: "Team",
-				path: "#/team",
+				path: "/team",
 				icon: <UsersIcon />,
 			},
 			{
 				title: "Integrations",
-				path: "#/integrations",
+				path: "/integrations",
 				icon: <PlugIcon />,
 			},
 		],
@@ -52,12 +51,12 @@ export const navGroups: SidebarNavGroup[] = [
 export const footerNavLinks: SidebarNavItem[] = [
 	{
 		title: "Help Center",
-		path: "#/help",
+		path: "/help",
 		icon: <HelpCircleIcon />,
 	},
 	{
 		title: "Documentation",
-		path: "#/documentation",
+		path: "/documentation",
 		icon: <BookOpenIcon />,
 	},
 ];

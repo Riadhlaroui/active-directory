@@ -2,11 +2,18 @@ import { cn } from "@/lib/utils";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppHeader } from "@/components/app-header";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Project } from "@/lib/types/project";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+	children,
+	projects,
+}: {
+	children: React.ReactNode;
+	projects: Project[];
+}) {
 	return (
 		<SidebarProvider className={cn("[--app-wrapper-max-width:80rem]")}>
-			<AppSidebar />
+			<AppSidebar projects={projects} />
 			<SidebarInset>
 				<AppHeader />
 				<div

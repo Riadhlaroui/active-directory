@@ -14,8 +14,9 @@ import {
 import { footerNavLinks, navGroups } from "@/components/app-shared";
 import { NavGroup } from "@/components/nav-group";
 import { NavProjects } from "./nav-projects";
+import { Project } from "@/lib/types/project";
 
-export function AppSidebar() {
+export function AppSidebar({ projects }: { projects: Project[] }) {
 	return (
 		<Sidebar
 			className={cn(
@@ -37,7 +38,7 @@ export function AppSidebar() {
 				{navGroups.map((group, index) => (
 					<NavGroup key={`sidebar-group-${index}`} {...group} />
 				))}
-				<NavProjects />
+				<NavProjects initial={projects} />
 			</SidebarContent>
 			<SidebarFooter className="gap-0 p-0">
 				<SidebarMenu className="border-t p-2">

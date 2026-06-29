@@ -15,8 +15,12 @@ import {
 } from "@/components/ui/sidebar";
 import type { SidebarNavGroup } from "@/components/app-shared";
 import { ChevronRightIcon } from "lucide-react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export function NavGroup({ label, items }: SidebarNavGroup) {
+	const pathname = usePathname();
+
 	return (
 		<SidebarGroup>
 			{label && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
@@ -46,12 +50,13 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 												<SidebarMenuSubItem key={subItem.title}>
 													<SidebarMenuSubButton
 														asChild
-														isActive={subItem.isActive}
+														isActive={pathname === subItem.path}
 													>
-														<a href={subItem.path}>
+														<Link href={subItem.path!}>
+															{" "}
 															{subItem.icon}
 															<span>{subItem.title}</span>
-														</a>
+														</Link>
 													</SidebarMenuSubButton>
 												</SidebarMenuSubItem>
 											))}
@@ -59,11 +64,11 @@ export function NavGroup({ label, items }: SidebarNavGroup) {
 									</CollapsibleContent>
 								</>
 							) : (
-								<SidebarMenuButton asChild isActive={item.isActive}>
-									<a href={item.path}>
+								<SidebarMenuButton asChild isActive={pathname === item.path}>
+									<Link href={item.path!}>
 										{item.icon}
 										<span>{item.title}</span>
-									</a>
+									</Link>
 								</SidebarMenuButton>
 							)}
 						</SidebarMenuItem>
