@@ -211,7 +211,7 @@ export function CreateEntryDialog({
 						<Input
 							value={name}
 							onChange={(e) => handleNameChange(e.target.value)}
-							placeholder={type === "file" ? "index" : "my-folder"}
+							placeholder={type === "file" ? "index" : "My Folder"}
 							autoFocus
 							className={cn(
 								nameError && "border-red-500 focus-visible:ring-red-500",
@@ -260,39 +260,40 @@ export function CreateEntryDialog({
 							Location
 						</label>
 
-						<div
-							className={cn(
-								"border overflow-hidden max-h-36 overflow-y-auto shadow-lg bg-background",
-								"[&::-webkit-scrollbar]:w-1.5",
-								"[&::-webkit-scrollbar-track]:bg-transparent",
-								"[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20",
-								"[&::-webkit-scrollbar-thumb]:",
-								"hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40 transition-colors",
-							)}
-						>
-							<LocationRow
-								icon={<FolderOpenIcon size={14} />}
-								label="/ (root)"
-								depth={0}
-								selected={location === ""}
-								onClick={() => setLocation("")}
-							/>
-							{tree.map((node) => (
+						<div className="flex flex-col border rounded-bl-md rounded-br-md shadow-sm bg-background overflow-hidden">
+							<div
+								className={cn(
+									"max-h-36 overflow-y-auto",
+									"[&::-webkit-scrollbar]:w-1.5",
+									"[&::-webkit-scrollbar-track]:bg-transparent",
+									"[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20",
+									"hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40 transition-colors",
+								)}
+							>
 								<LocationRow
-									key={node.id}
-									icon={<FolderIcon size={14} />}
-									label={node.name}
-									depth={1}
-									selected={location === node.id}
-									onClick={() => setLocation(node.id)}
+									icon={<FolderOpenIcon size={14} />}
+									label="/ (root)"
+									depth={0}
+									selected={location === ""}
+									onClick={() => setLocation("")}
 								/>
-							))}
-						</div>
-					</div>
+								{tree.map((node) => (
+									<LocationRow
+										key={node.id}
+										icon={<FolderIcon size={14} />}
+										label={node.name}
+										depth={1}
+										selected={location === node.id}
+										onClick={() => setLocation(node.id)}
+									/>
+								))}
+							</div>
 
-					<div className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted border text-xs font-mono text-muted-foreground">
-						<span className="text-muted-foreground/50">→</span>
-						<span className="truncate">{previewPath || "—"}</span>
+							<div className="flex items-center shrink-0 gap-2 px-3 py-2 bg-muted/50 border-t text-sm text-muted-foreground">
+								<span className="text-muted-foreground/50">→</span>
+								<span className="truncate">{previewPath || "—"}</span>
+							</div>
+						</div>
 					</div>
 
 					{submitError && (
@@ -304,17 +305,14 @@ export function CreateEntryDialog({
 				</div>
 
 				<DialogFooter className="px-5 py-3 rounded-none">
-					<Button
-						variant="ghost"
-						className="mr-auto"
-						size="lg"
-						onClick={() => onOpenChange(false)}
-					>
-						Cancel
-					</Button>
-					<Button
-						className="shadow-lg h-10"
-						size="lg"
+					<button
+						className={cn(
+							"h-10 px-6 bg-transparent hover:bg-muted  hover:text-foreground  border shadow-sm text-white transition-all",
+							"disabled:opacity-50 disabled:cursor-not-allowed",
+							"disabled:bg-muted/30 disabled:text-muted-foreground disabled:border-muted disabled:shadow-none",
+
+							"disabled:hover:bg-muted/30 disabled:hover:text-muted-foreground",
+						)}
 						onClick={handleCreate}
 						disabled={!name.trim() || !!nameError || loading}
 					>
@@ -323,7 +321,7 @@ export function CreateEntryDialog({
 							: type === "file"
 								? "Create file"
 								: "Create folder"}
-					</Button>
+					</button>
 				</DialogFooter>
 			</DialogContent>
 		</Dialog>

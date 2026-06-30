@@ -26,7 +26,13 @@ import {
 import {
 	ContextMenu,
 	ContextMenuContent,
+	ContextMenuGroup,
 	ContextMenuItem,
+	ContextMenuSeparator,
+	ContextMenuShortcut,
+	ContextMenuSub,
+	ContextMenuSubContent,
+	ContextMenuSubTrigger,
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
@@ -41,6 +47,7 @@ import {
 	FileIcon,
 	LoaderIcon,
 } from "lucide-react";
+import { Icon } from "@iconify/react";
 import {
 	createFolder,
 	deleteFolder,
@@ -54,6 +61,36 @@ import { GitHubEntry, Project, ProjectWithFiles } from "@/lib/types/project";
 import { CreateEntryDialog } from "./create-entry-dialog";
 import { useSync } from "@/lib/sync-context";
 import { getErrorMessage } from "@/lib/github-error";
+import { RenamePopover } from "./rename-popover";
+
+function getFileIcon(filename: string): string {
+	const ext = filename.includes(".")
+		? filename.slice(filename.lastIndexOf("."))
+		: "";
+
+	const map: Record<string, string> = {
+		".md": "vscode-icons:file-type-markdown",
+		".txt": "vscode-icons:file-type-text",
+		".ts": "vscode-icons:file-type-typescript-official",
+		".tsx": "vscode-icons:file-type-reactts",
+		".js": "vscode-icons:file-type-js-official",
+		".jsx": "vscode-icons:file-type-reactjs",
+		".json": "vscode-icons:file-type-json",
+		".css": "vscode-icons:file-type-css",
+		".html": "vscode-icons:file-type-html",
+		".py": "vscode-icons:file-type-python",
+		".sh": "vscode-icons:file-type-shell",
+		".yml": "vscode-icons:file-type-yaml",
+		".yaml": "vscode-icons:file-type-yaml",
+		".env": "vscode-icons:file-type-dotenv",
+		".sql": "vscode-icons:file-type-sql",
+		".rs": "vscode-icons:file-type-rust",
+		".go": "vscode-icons:file-type-go",
+		".toml": "vscode-icons:file-type-toml",
+	};
+
+	return map[ext] ?? "vscode-icons:default-file";
+}
 
 export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 	const [projects, setProjects] = useState<ProjectWithFiles[]>(initial);
@@ -162,47 +199,36 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 		setRenameValue(project.name);
 	}
 
-	function commitRename() {
-		if (!renamingId) return;
-		const trimmed = renameValue.trim();
-		if (!trimmed) {
-			setRenamingId(null);
-			return;
-		}
+	function commitRename(id: string, newName: string) {
+		const originalProject = projects.find((p) => p.id === id);
+		const isNew =
+			!originalProject || originalProject.id !== originalProject.name; // temp UUID means it's new
 
-		const isNew = !projects.find(
-			(p) => p.id === renamingId && p.name !== renameValue,
-		);
+		setRenamingId(null);
 
 		startTransition(async () => {
 			try {
-				if (isNew) {
-					startSync(`Creating folder "${trimmed}"…`, "create");
-					const created = await createFolder(trimmed);
-					setProjects((prev) =>
-						prev.map((p) => (p.id === renamingId ? created : p)),
-					);
+				if (isNew && !originalProject?.name) {
+					// brand-new folder (created via inline add — not used anymore but kept for safety)
+					startSync(`Creating folder "${newName}"…`, "create");
+					const created = await createFolder(newName);
+					setProjects((prev) => prev.map((p) => (p.id === id ? created : p)));
 					finishSync(true);
 				} else {
-					const originalProject = projects.find((p) => p.id === renamingId);
 					startSync(
-						`Renaming "${originalProject?.name}" to "${trimmed}"…`,
+						`Renaming "${originalProject?.name}" to "${newName}"…`,
 						"rename",
 					);
-					await renameFolder(renamingId, trimmed);
+					await renameFolder(id, newName);
 					setProjects((prev) =>
-						prev.map((p) =>
-							p.id === renamingId ? { ...p, name: trimmed } : p,
-						),
+						prev.map((p) => (p.id === id ? { ...p, name: newName } : p)),
 					);
 					finishSync(true);
 				}
 			} catch (e) {
 				console.error(e);
-				setProjects((prev) => prev.filter((p) => p.id !== renamingId));
 				finishSync(false, getErrorMessage(e));
 			}
-			setRenamingId(null);
 		});
 	}
 
@@ -312,23 +338,13 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 									<ContextMenuTrigger asChild>
 										<div className="flex items-center w-full">
 											{renamingId === project.id ? (
-												<div className="flex items-center gap-1.5 px-2 py-1 w-full">
-													<FolderIcon
-														size={14}
-														className="text-muted-foreground shrink-0"
-													/>
-													<input
-														ref={renameInputRef}
-														value={renameValue}
-														onChange={(e) => setRenameValue(e.target.value)}
-														onBlur={commitRename}
-														onKeyDown={(e) => {
-															if (e.key === "Enter") commitRename();
-															if (e.key === "Escape") setRenamingId(null);
-														}}
-														className="flex-1 min-w-0 text-sm bg-transparent border-b border-border outline-none text-foreground"
-													/>
-												</div>
+												<RenamePopover
+													defaultValue={project.name}
+													onCommit={(newName) =>
+														commitRename(project.id, newName)
+													}
+													onCancel={() => setRenamingId(null)}
+												/>
 											) : (
 												<>
 													<SidebarMenuButton
@@ -410,7 +426,7 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 										{!project.files || project.files.length === 0 ? (
 											<SidebarMenuSubItem>
 												<span className="px-2 py-1 text-xs text-muted-foreground">
-													No files yet
+													No files found
 												</span>
 											</SidebarMenuSubItem>
 										) : (
@@ -423,9 +439,15 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 																	href={`#/projects/${project.id}/${file.path}`}
 																>
 																	{file.type === "dir" ? (
-																		<FolderIcon size={12} />
+																		<FolderIcon
+																			size={13}
+																			className="shrink-0"
+																		/>
 																	) : (
-																		<FileIcon size={12} />
+																		<Icon
+																			icon={getFileIcon(file.name)}
+																			className="size-4 shrink-0"
+																		/>
 																	)}
 																	<span className="truncate">{file.name}</span>
 																</a>
@@ -441,6 +463,50 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 																<Trash2Icon />
 																Delete
 															</ContextMenuItem>
+															<ContextMenuGroup>
+																<ContextMenuItem>
+																	Back
+																	<ContextMenuShortcut>⌘[</ContextMenuShortcut>
+																</ContextMenuItem>
+																<ContextMenuItem disabled>
+																	Forward
+																	<ContextMenuShortcut>⌘]</ContextMenuShortcut>
+																</ContextMenuItem>
+																<ContextMenuItem>
+																	Reload
+																	<ContextMenuShortcut>⌘R</ContextMenuShortcut>
+																</ContextMenuItem>
+																<ContextMenuSub>
+																	<ContextMenuSubTrigger>
+																		More Tools
+																	</ContextMenuSubTrigger>
+																	<ContextMenuSubContent className="w-44">
+																		<ContextMenuGroup>
+																			<ContextMenuItem>
+																				Save Page...
+																			</ContextMenuItem>
+																			<ContextMenuItem>
+																				Create Shortcut...
+																			</ContextMenuItem>
+																			<ContextMenuItem>
+																				Name Window...
+																			</ContextMenuItem>
+																		</ContextMenuGroup>
+																		<ContextMenuSeparator />
+																		<ContextMenuGroup>
+																			<ContextMenuItem>
+																				Developer Tools
+																			</ContextMenuItem>
+																		</ContextMenuGroup>
+																		<ContextMenuSeparator />
+																		<ContextMenuGroup>
+																			<ContextMenuItem variant="destructive">
+																				Delete
+																			</ContextMenuItem>
+																		</ContextMenuGroup>
+																	</ContextMenuSubContent>
+																</ContextMenuSub>
+															</ContextMenuGroup>
 														</ContextMenuContent>
 													</ContextMenu>
 												</SidebarMenuSubItem>
@@ -465,7 +531,10 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 										<ContextMenuTrigger asChild>
 											<SidebarMenuButton asChild>
 												<a href={`#/files/${file.path}`}>
-													<FileIcon size={14} />
+													<Icon
+														icon={getFileIcon(file.name)}
+														className="size-4 shrink-0"
+													/>
 													<span className="truncate">{file.name}</span>
 												</a>
 											</SidebarMenuButton>
