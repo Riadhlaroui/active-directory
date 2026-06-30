@@ -3,21 +3,26 @@
 import { getFile, putFile, listDir, deleteFile } from "../github";
 import { revalidatePath } from "next/cache";
 
-export async function createProject(name: string) {
+export async function createFolder(name: string) {
 	const slug = slugify(name);
-	const path = `prjects/${slug}/.gitkeep`;
+	const path = `${slug}/.gitkeep`;
 
-	const existing = await getFile(name);
+	const existing = await getFile(`${slug}/.meta.json`);
 	if (existing) throw new Error("Project already exists");
 
-	await putFile(path, "", `chore: create project  "${name}"`);
+	await putFile(path, "", `chore: create project "${name}"`);
+	await putFile(
+		`${slug}/.meta.json`,
+		JSON.stringify({ name }),
+		`chore: set display name for "${slug}"`,
+	);
 	revalidatePath("/");
 	return { id: slug, name };
 }
 
-export async function renameProject(oldSlug: string, newName: string) {
+export async function renameFolder(oldSlug: string, newName: string) {
 	const newSlug = slugify(newName);
-	const metaPath = `prjects/${oldSlug}/.meta.json`;
+	const metaPath = `${oldSlug}/.meta.json`;
 
 	const existing = await getFile(metaPath);
 
@@ -31,17 +36,24 @@ export async function renameProject(oldSlug: string, newName: string) {
 	revalidatePath("/");
 }
 
-export async function deleteProject(slug: string) {
-	const files = await listDir(`projects/${slug}`);
-	for (const file of files) {
-		if (file.type === "file") {
-			await deleteFile(file.path, file.sha, `chore: delete project "${slug}"`);
-		}
-	}
+export async function deleteFolder(path: string) {
+	await deleteFolderRecursive(path);
 	revalidatePath("/");
 }
 
-export async function getProjects() {
+async function deleteFolderRecursive(path: string) {
+	const entries = await listDir(path);
+
+	for (const entry of entries) {
+		if (entry.type === "dir") {
+			await deleteFolderRecursive(entry.path);
+		} else {
+			await deleteFile(entry.path, entry.sha, `chore: delete ${entry.path}`);
+		}
+	}
+}
+
+export async function getFolders() {
 	const dirs = await listDir("");
 
 	if (!dirs || dirs.length === 0) return [];
@@ -59,39 +71,39 @@ export async function getProjects() {
 	);
 }
 
-export async function createFileInProject(
+export async function createFileInFolder(
 	projectSlug: string,
 	filePath: string,
 	content: string,
 ) {
-	const fullPath = `projects/${projectSlug}/${filePath}`;
+	const fullPath = projectSlug ? `${projectSlug}/${filePath}` : filePath;
 	const existing = await getFile(fullPath);
 	await putFile(
 		fullPath,
 		content,
-		`feat(${projectSlug}): add ${filePath}`,
+		`feat(${projectSlug || "root"}): add ${filePath}`,
 		existing?.sha,
 	);
 	revalidatePath("/");
 }
 
-export async function deleteFileInProject(
+export async function deleteFileInFolder(
 	projectSlug: string,
 	filePath: string,
 ) {
-	const fullPath = `projects/${projectSlug}/${filePath}`;
+	const fullPath = projectSlug ? `${projectSlug}/${filePath}` : filePath;
 	const existing = await getFile(fullPath);
 	if (!existing) throw new Error("File not found");
 	await deleteFile(
 		fullPath,
 		existing.sha,
-		`chore(${projectSlug}): delete ${filePath}`,
+		`chore(${projectSlug || "root"}): delete ${filePath}`,
 	);
 	revalidatePath("/");
 }
 
-export async function getProjectFiles(projectSlug: string) {
-	return listDir(`projects/${projectSlug}`);
+export async function getFolderFiles(projectSlug: string) {
+	return listDir(projectSlug);
 }
 
 function slugify(name: string) {

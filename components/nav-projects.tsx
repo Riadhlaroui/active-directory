@@ -42,13 +42,16 @@ import {
 	LoaderIcon,
 } from "lucide-react";
 import {
-	createProject,
-	deleteProject,
-	renameProject,
-	getProjectFiles,
+	createFolder,
+	deleteFolder,
+	renameFolder,
+	getFolderFiles,
+	deleteFileInFolder,
+	getFolders,
 } from "@/lib/actions/projects";
 import { Project } from "@/lib/types/project";
 import { CreateEntryDialog } from "./create-entry-dialog";
+import { useSync } from "@/lib/sync-context";
 
 type GitHubEntry = {
 	name: string;
@@ -71,6 +74,33 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 	const renameInputRef = useRef<HTMLInputElement>(null);
 
 	const [dialogOpen, setDialogOpen] = useState(false);
+
+	const { startSync, finishSync, registerRefresh } = useSync();
+
+	async function refreshFolders() {
+		try {
+			const fresh = await getFolders();
+			setProjects((prev) => {
+				return fresh.map((f) => {
+					const existing = prev.find((p) => p.id === f.id);
+					return existing
+						? {
+								...f,
+								expanded: existing.expanded,
+								files: existing.files,
+								filesLoaded: existing.filesLoaded,
+							}
+						: f;
+				});
+			});
+		} catch (e) {
+			console.error("Failed to refresh folders", e);
+		}
+	}
+
+	useEffect(() => {
+		registerRefresh(refreshFolders);
+	}, []);
 
 	useEffect(() => {
 		if (renamingId) {
@@ -104,7 +134,7 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 		);
 
 		try {
-			const files = await getProjectFiles(id);
+			const files = await getFolderFiles(id);
 			setProjects((prev) =>
 				prev.map((p) =>
 					p.id === id
@@ -129,14 +159,6 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 		}
 	}
 
-	function addProject() {
-		const id = crypto.randomUUID();
-		const name = `Project ${projects.length + 1}`;
-		setProjects((prev) => [...prev, { id, name }]);
-		setRenamingId(id);
-		setRenameValue(name);
-	}
-
 	function startRename(project: Project) {
 		setRenamingId(project.id);
 		setRenameValue(project.name);
@@ -157,29 +179,82 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 		startTransition(async () => {
 			try {
 				if (isNew) {
-					const created = await createProject(trimmed);
+					startSync(`Creating folder "${trimmed}"…`, "create");
+					const created = await createFolder(trimmed);
 					setProjects((prev) =>
 						prev.map((p) => (p.id === renamingId ? created : p)),
 					);
+					finishSync(true); // ADD
 				} else {
-					await renameProject(renamingId, trimmed);
+					const originalProject = projects.find((p) => p.id === renamingId);
+					startSync(
+						`Renaming "${originalProject?.name}" to "${trimmed}"…`,
+						"rename",
+					);
+					await renameFolder(renamingId, trimmed);
 					setProjects((prev) =>
 						prev.map((p) =>
 							p.id === renamingId ? { ...p, name: trimmed } : p,
 						),
 					);
+					finishSync(true);
 				}
 			} catch (e) {
 				console.error(e);
 				setProjects((prev) => prev.filter((p) => p.id !== renamingId));
+				finishSync(false, "Sync failed changes may not be reflected");
 			}
 			setRenamingId(null);
 		});
 	}
 
+	function handleDeleteNested(projectId: string, file: GitHubEntry) {
+		setProjects((prev) =>
+			prev.map((p) =>
+				p.id === projectId
+					? { ...p, files: p.files?.filter((f) => f.sha !== file.sha) }
+					: p,
+			),
+		);
+
+		startTransition(async () => {
+			startSync(`Deleting "${file.name}" and syncing with GitHub…`, "delete");
+			try {
+				if (file.type === "dir") {
+					await deleteFolder(file.path);
+				} else {
+					await deleteFileInFolder(
+						projectId,
+						file.path.replace(`${projectId}/`, ""),
+					);
+				}
+				finishSync(true);
+			} catch (e) {
+				console.error(e);
+				finishSync(false, "Failed to delete — changes may not be reflected");
+			}
+		});
+	}
+
 	function handleDelete(id: string) {
+		const project = projects.find((p) => p.id === id);
 		setProjects((prev) => prev.filter((p) => p.id !== id));
-		startTransition(() => deleteProject(id));
+
+		startTransition(async () => {
+			console.log("calling startSync");
+			startSync(
+				`Deleting "${project?.name}" and syncing with GitHub…`,
+				"delete",
+			);
+			try {
+				await deleteFolder(id);
+				console.log("calling finishSync true");
+				finishSync(true);
+			} catch (e) {
+				console.error(e);
+				finishSync(false, "Failed to delete — changes may not be reflected");
+			}
+		});
 	}
 
 	return (
@@ -328,16 +403,33 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 										) : (
 											project.files.map((file) => (
 												<SidebarMenuSubItem key={file.sha}>
-													<SidebarMenuSubButton asChild>
-														<a href={`#/projects/${project.id}/${file.path}`}>
-															{file.type === "dir" ? (
-																<FolderIcon size={12} />
-															) : (
-																<FileIcon size={12} />
-															)}
-															<span className="truncate">{file.name}</span>
-														</a>
-													</SidebarMenuSubButton>
+													<ContextMenu>
+														<ContextMenuTrigger asChild>
+															<SidebarMenuSubButton asChild>
+																<a
+																	href={`#/projects/${project.id}/${file.path}`}
+																>
+																	{file.type === "dir" ? (
+																		<FolderIcon size={12} />
+																	) : (
+																		<FileIcon size={12} />
+																	)}
+																	<span className="truncate">{file.name}</span>
+																</a>
+															</SidebarMenuSubButton>
+														</ContextMenuTrigger>
+														<ContextMenuContent className="w-40">
+															<ContextMenuItem
+																variant="destructive"
+																onClick={() =>
+																	handleDeleteNested(project.id, file)
+																}
+															>
+																<Trash2Icon />
+																Delete
+															</ContextMenuItem>
+														</ContextMenuContent>
+													</ContextMenu>
 												</SidebarMenuSubItem>
 											))
 										)}

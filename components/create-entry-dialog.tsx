@@ -12,9 +12,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { FileIcon, FolderIcon, FolderOpenIcon } from "lucide-react";
-import { createFileInProject, createProject } from "@/lib/actions/projects";
+import { createFileInFolder, createFolder } from "@/lib/actions/projects";
 import { DecorIcon } from "./ui/decor-icon";
-import Image from "next/image";
+import { Icon } from "@iconify/react";
+import { useSync } from "@/lib/sync-context";
 
 const FILE_EXTENSIONS = [
 	{ ext: ".md", label: "Markdown", icon: "vscode-icons:file-type-markdown" },
@@ -63,6 +64,8 @@ export function CreateEntryDialog({
 	const [location, setLocation] = useState<string>("");
 	const [loading, setLoading] = useState(false);
 
+	const { startSync, finishSync } = useSync();
+
 	const tree: TreeNode[] = projects.map((p) => ({
 		id: p.id,
 		name: p.name,
@@ -78,27 +81,43 @@ export function CreateEntryDialog({
 	async function handleCreate() {
 		if (!name.trim()) return;
 		setLoading(true);
+
+		const trimmedName = name.trim();
+		const locationLabel = location
+			? (projects.find((p) => p.id === location)?.name ?? location)
+			: "root";
+
 		try {
 			if (type === "folder") {
+				startSync(
+					`Creating folder "${trimmedName}" in ${locationLabel}…`,
+					"create",
+				);
 				const folderPath = location
-					? `${location}/${name.trim()}/.gitkeep`
-					: `${name.trim()}/.gitkeep`;
-				await createFileInProject("", folderPath, "");
+					? `${location}/${trimmedName}/.gitkeep`
+					: `${trimmedName}/.gitkeep`;
+				await createFileInFolder("", folderPath, "");
 			} else {
+				startSync(
+					`Creating "${trimmedName}${ext}" in ${locationLabel}…`,
+					"create",
+				);
 				const filePath = location
-					? `${location}/${name.trim()}${ext}`
-					: `${name.trim()}${ext}`;
-				await createFileInProject(
+					? `${location}/${trimmedName}${ext}`
+					: `${trimmedName}${ext}`;
+				await createFileInFolder(
 					"",
 					filePath,
-					getInitialContent(name.trim(), ext),
+					getInitialContent(trimmedName, ext),
 				);
 			}
+			finishSync(true);
 			onCreated?.();
 			onOpenChange(false);
 			setName("");
 		} catch (e) {
 			console.error(e);
+			finishSync(false, "Failed to create changes may not be reflected");
 		} finally {
 			setLoading(false);
 		}
@@ -106,7 +125,11 @@ export function CreateEntryDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="w-165 bg-[radial-gradient(50%_80%_at_25%_0%,--theme(--color-foreground/.1),transparent)] rounded-none">
+			<DialogContent
+				onInteractOutside={(e) => e.preventDefault()}
+				onEscapeKeyDown={(e) => e.preventDefault()}
+				className="w-205 h-fit bg-[radial-gradient(40%_60%_at_25%_0%,--theme(--color-foreground/.1),transparent)] rounded-none"
+			>
 				<div className="absolute -inset-y-4 -left-px w-px bg-border" />
 				<div className="absolute -inset-y-4 -right-px w-px bg-border" />
 				<div className="absolute -inset-x-4 -top-px h-px bg-border" />
@@ -174,16 +197,7 @@ export function CreateEntryDialog({
 												: "border-border text-muted-foreground hover:bg-muted hover:border-border-strong",
 										)}
 									>
-										<Image
-											src={icon}
-											alt={label}
-											width={20}
-											height={20}
-											className="shrink-0"
-											onError={(e) => {
-												e.currentTarget.style.display = "none";
-											}}
-										/>
+										<Icon icon={icon} className="size-5 shrink-0" />
 										<div className="flex flex-col min-w-0">
 											<span className="text-[12px] font-mono leading-tight truncate">
 												{e}
@@ -222,12 +236,12 @@ export function CreateEntryDialog({
 					</div>
 
 					<div className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted border text-xs font-mono text-muted-foreground">
-						<span className="text-muted-foreground/50">→</span>
+						<span className="text-muted-foreground/50">-</span>
 						<span className="truncate">{previewPath || "—"}</span>
 					</div>
 				</div>
 
-				<DialogFooter className="px-5 py-3 ">
+				<DialogFooter className="px-5 py-3 rounded-none">
 					<Button
 						variant="ghost"
 						className="mr-auto"

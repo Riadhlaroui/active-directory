@@ -2,7 +2,6 @@ const owner = process.env.GITHUB_OWNER;
 const repo = process.env.GITHUB_REPO;
 const token = process.env.GITHUB_TOKEN;
 
-// Base points to the gws/ folder inside your repo
 const BASE = `https://api.github.com/repos/${owner}/${repo}/contents`;
 
 const headers = {
