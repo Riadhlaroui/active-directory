@@ -66,10 +66,13 @@ export async function putFile(
 		body: JSON.stringify(body),
 	});
 
-	if (!res.ok)
-		throw new Error(
-			`GitHub putFile failed [${res.status}]: ${await res.text()}`,
-		);
+	if (!res.ok) {
+		const text = await res.text();
+		const err = new Error(`GitHub putFile failed [${res.status}]: ${text}`);
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		(err as any).status = res.status;
+		throw err;
+	}
 	return res.json();
 }
 

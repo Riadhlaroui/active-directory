@@ -48,27 +48,17 @@ import {
 	getFolderFiles,
 	deleteFileInFolder,
 	getFolders,
+	getRootFiles,
 } from "@/lib/actions/projects";
-import { Project } from "@/lib/types/project";
+import { GitHubEntry, Project, ProjectWithFiles } from "@/lib/types/project";
 import { CreateEntryDialog } from "./create-entry-dialog";
 import { useSync } from "@/lib/sync-context";
-
-type GitHubEntry = {
-	name: string;
-	path: string;
-	type: "file" | "dir";
-	sha: string;
-};
-
-type ProjectWithFiles = Project & {
-	files?: GitHubEntry[];
-	filesLoaded?: boolean;
-	filesLoading?: boolean;
-	expanded?: boolean;
-};
+import { getErrorMessage } from "@/lib/github-error";
 
 export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 	const [projects, setProjects] = useState<ProjectWithFiles[]>(initial);
+	const [rootFiles, setRootFiles] = useState<GitHubEntry[]>([]);
+	const [rootFilesLoading, setRootFilesLoading] = useState(true);
 	const [renamingId, setRenamingId] = useState<string | null>(null);
 	const [renameValue, setRenameValue] = useState("");
 	const renameInputRef = useRef<HTMLInputElement>(null);
@@ -79,7 +69,10 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 
 	async function refreshFolders() {
 		try {
-			const fresh = await getFolders();
+			const [fresh, freshRootFiles] = await Promise.all([
+				getFolders(),
+				getRootFiles(),
+			]);
 			setProjects((prev) => {
 				return fresh.map((f) => {
 					const existing = prev.find((p) => p.id === f.id);
@@ -93,6 +86,7 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 						: f;
 				});
 			});
+			setRootFiles(freshRootFiles);
 		} catch (e) {
 			console.error("Failed to refresh folders", e);
 		}
@@ -100,6 +94,10 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 
 	useEffect(() => {
 		registerRefresh(refreshFolders);
+		getRootFiles()
+			.then(setRootFiles)
+			.catch((e) => console.error("Failed to load root files", e))
+			.finally(() => setRootFilesLoading(false));
 	}, []);
 
 	useEffect(() => {
@@ -184,7 +182,7 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 					setProjects((prev) =>
 						prev.map((p) => (p.id === renamingId ? created : p)),
 					);
-					finishSync(true); // ADD
+					finishSync(true);
 				} else {
 					const originalProject = projects.find((p) => p.id === renamingId);
 					startSync(
@@ -202,7 +200,7 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 			} catch (e) {
 				console.error(e);
 				setProjects((prev) => prev.filter((p) => p.id !== renamingId));
-				finishSync(false, "Sync failed changes may not be reflected");
+				finishSync(false, getErrorMessage(e));
 			}
 			setRenamingId(null);
 		});
@@ -231,7 +229,22 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 				finishSync(true);
 			} catch (e) {
 				console.error(e);
-				finishSync(false, "Failed to delete — changes may not be reflected");
+				finishSync(false, getErrorMessage(e));
+			}
+		});
+	}
+
+	function handleDeleteRootFile(file: GitHubEntry) {
+		setRootFiles((prev) => prev.filter((f) => f.sha !== file.sha));
+
+		startTransition(async () => {
+			startSync(`Deleting "${file.name}" and syncing with GitHub…`, "delete");
+			try {
+				await deleteFileInFolder("", file.path);
+				finishSync(true);
+			} catch (e) {
+				console.error(e);
+				finishSync(false, getErrorMessage(e));
 			}
 		});
 	}
@@ -252,7 +265,7 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 				finishSync(true);
 			} catch (e) {
 				console.error(e);
-				finishSync(false, "Failed to delete — changes may not be reflected");
+				finishSync(false, getErrorMessage(e));
 			}
 		});
 	}
@@ -437,6 +450,39 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 								)}
 							</SidebarMenuItem>
 						))}
+
+						{rootFilesLoading ? (
+							<SidebarMenuItem>
+								<div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
+									<LoaderIcon size={11} className="animate-spin" />
+									Loading files…
+								</div>
+							</SidebarMenuItem>
+						) : (
+							rootFiles.map((file) => (
+								<SidebarMenuItem key={file.sha}>
+									<ContextMenu>
+										<ContextMenuTrigger asChild>
+											<SidebarMenuButton asChild>
+												<a href={`#/files/${file.path}`}>
+													<FileIcon size={14} />
+													<span className="truncate">{file.name}</span>
+												</a>
+											</SidebarMenuButton>
+										</ContextMenuTrigger>
+										<ContextMenuContent className="w-40">
+											<ContextMenuItem
+												variant="destructive"
+												onClick={() => handleDeleteRootFile(file)}
+											>
+												<Trash2Icon />
+												Delete
+											</ContextMenuItem>
+										</ContextMenuContent>
+									</ContextMenu>
+								</SidebarMenuItem>
+							))
+						)}
 					</SidebarMenu>
 				</CollapsibleContent>
 			</Collapsible>

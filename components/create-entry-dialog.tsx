@@ -11,11 +11,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { FileIcon, FolderIcon, FolderOpenIcon } from "lucide-react";
-import { createFileInFolder, createFolder } from "@/lib/actions/projects";
+import {
+	FileIcon,
+	FolderIcon,
+	FolderOpenIcon,
+	AlertCircleIcon,
+} from "lucide-react";
+import { createFileInFolder } from "@/lib/actions/projects";
 import { DecorIcon } from "./ui/decor-icon";
 import { Icon } from "@iconify/react";
 import { useSync } from "@/lib/sync-context";
+import { getErrorMessage } from "@/lib/github-error";
+import { validateEntryName } from "@/lib/validation";
+import { GitHubError } from "@/lib/github-error";
 
 const FILE_EXTENSIONS = [
 	{ ext: ".md", label: "Markdown", icon: "vscode-icons:file-type-markdown" },
@@ -58,11 +66,13 @@ export function CreateEntryDialog({
 	projects,
 	onCreated,
 }: Props) {
-	const [type, setType] = useState<"file" | "folder">("file");
+	const [type, setType] = useState<"file" | "folder">("folder");
 	const [name, setName] = useState("");
 	const [ext, setExt] = useState(".md");
 	const [location, setLocation] = useState<string>("");
 	const [loading, setLoading] = useState(false);
+	const [nameError, setNameError] = useState<string | null>(null);
+	const [submitError, setSubmitError] = useState<string | null>(null);
 
 	const { startSync, finishSync } = useSync();
 
@@ -78,9 +88,30 @@ export function CreateEntryDialog({
 		type === "file" ? ext : "",
 	);
 
+	function handleNameChange(value: string) {
+		setName(value);
+		setSubmitError(null);
+		if (!value.trim()) {
+			setNameError(null);
+			return;
+		}
+		try {
+			validateEntryName(value);
+			setNameError(null);
+		} catch (e) {
+			setNameError(e instanceof GitHubError ? e.message : "Invalid name.");
+		}
+	}
+
+	function handleTypeChange(next: "file" | "folder") {
+		setType(next);
+		setSubmitError(null);
+	}
+
 	async function handleCreate() {
-		if (!name.trim()) return;
+		if (!name.trim() || nameError) return;
 		setLoading(true);
+		setSubmitError(null);
 
 		const trimmedName = name.trim();
 		const locationLabel = location
@@ -96,7 +127,7 @@ export function CreateEntryDialog({
 				const folderPath = location
 					? `${location}/${trimmedName}/.gitkeep`
 					: `${trimmedName}/.gitkeep`;
-				await createFileInFolder("", folderPath, "");
+				await createFileInFolder("", folderPath, "", trimmedName);
 			} else {
 				startSync(
 					`Creating "${trimmedName}${ext}" in ${locationLabel}…`,
@@ -109,6 +140,7 @@ export function CreateEntryDialog({
 					"",
 					filePath,
 					getInitialContent(trimmedName, ext),
+					trimmedName,
 				);
 			}
 			finishSync(true);
@@ -117,7 +149,9 @@ export function CreateEntryDialog({
 			setName("");
 		} catch (e) {
 			console.error(e);
-			finishSync(false, "Failed to create changes may not be reflected");
+			const message = getErrorMessage(e);
+			finishSync(false, message);
+			setSubmitError(message);
 		} finally {
 			setLoading(false);
 		}
@@ -128,7 +162,7 @@ export function CreateEntryDialog({
 			<DialogContent
 				onInteractOutside={(e) => e.preventDefault()}
 				onEscapeKeyDown={(e) => e.preventDefault()}
-				className="w-205 h-fit bg-[radial-gradient(40%_60%_at_25%_0%,--theme(--color-foreground/.1),transparent)] rounded-none"
+				className="min-w-125 h-fit bg-[radial-gradient(40%_50%_at_25%_0%,--theme(--color-foreground/.1),transparent)] rounded-none"
 			>
 				<div className="absolute -inset-y-4 -left-px w-px bg-border" />
 				<div className="absolute -inset-y-4 -right-px w-px bg-border" />
@@ -145,21 +179,9 @@ export function CreateEntryDialog({
 				<div className="px-2 py-2 flex flex-col gap-4">
 					<div className="grid grid-cols-2 gap-2">
 						<button
-							onClick={() => setType("file")}
+							onClick={() => handleTypeChange("folder")}
 							className={cn(
-								"flex flex-col items-center gap-1.5 p-3 rounded-lg border text-sm font-medium transition-colors",
-								type === "file"
-									? "border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
-									: "border-border bg-muted/40 text-muted-foreground hover:bg-muted",
-							)}
-						>
-							<FileIcon size={20} />
-							File
-						</button>
-						<button
-							onClick={() => setType("folder")}
-							className={cn(
-								"flex flex-col items-center gap-1.5 p-3 rounded-lg border text-sm font-medium transition-colors",
+								"flex flex-col items-center gap-1.5 p-3 border text-sm font-medium transition-colors",
 								type === "folder"
 									? "border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
 									: "border-border bg-muted/40 text-muted-foreground hover:bg-muted",
@@ -167,6 +189,18 @@ export function CreateEntryDialog({
 						>
 							<FolderIcon size={20} />
 							Folder
+						</button>
+						<button
+							onClick={() => handleTypeChange("file")}
+							className={cn(
+								"flex flex-col items-center gap-1.5 p-3 border text-sm font-medium transition-colors",
+								type === "file"
+									? "border-blue-500 bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
+									: "border-border bg-muted/40 text-muted-foreground hover:bg-muted",
+							)}
+						>
+							<FileIcon size={20} />
+							File
 						</button>
 					</div>
 
@@ -176,10 +210,19 @@ export function CreateEntryDialog({
 						</label>
 						<Input
 							value={name}
-							onChange={(e) => setName(e.target.value)}
+							onChange={(e) => handleNameChange(e.target.value)}
 							placeholder={type === "file" ? "index" : "my-folder"}
 							autoFocus
+							className={cn(
+								nameError && "border-red-500 focus-visible:ring-red-500",
+							)}
 						/>
+						{nameError && (
+							<p className="flex items-center gap-1 text-xs text-red-500">
+								<AlertCircleIcon size={12} className="shrink-0" />
+								{nameError}
+							</p>
+						)}
 					</div>
 
 					{type === "file" && (
@@ -213,10 +256,22 @@ export function CreateEntryDialog({
 					)}
 
 					<div className="flex flex-col gap-1.5">
-						<label className="text-xs text-muted-foreground">Location</label>
-						<div className="border rounded-md overflow-hidden max-h-36 overflow-y-auto text-sm">
+						<label className="text-xs font-medium text-muted-foreground ml-0.5">
+							Location
+						</label>
+
+						<div
+							className={cn(
+								"border overflow-hidden max-h-36 overflow-y-auto shadow-lg bg-background",
+								"[&::-webkit-scrollbar]:w-1.5",
+								"[&::-webkit-scrollbar-track]:bg-transparent",
+								"[&::-webkit-scrollbar-thumb]:bg-muted-foreground/20",
+								"[&::-webkit-scrollbar-thumb]:",
+								"hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40 transition-colors",
+							)}
+						>
 							<LocationRow
-								icon={<FolderOpenIcon size={13} />}
+								icon={<FolderOpenIcon size={14} />}
 								label="/ (root)"
 								depth={0}
 								selected={location === ""}
@@ -225,7 +280,7 @@ export function CreateEntryDialog({
 							{tree.map((node) => (
 								<LocationRow
 									key={node.id}
-									icon={<FolderIcon size={13} />}
+									icon={<FolderIcon size={14} />}
 									label={node.name}
 									depth={1}
 									selected={location === node.id}
@@ -236,9 +291,16 @@ export function CreateEntryDialog({
 					</div>
 
 					<div className="flex items-center gap-2 px-3 py-2 rounded-md bg-muted border text-xs font-mono text-muted-foreground">
-						<span className="text-muted-foreground/50">-</span>
+						<span className="text-muted-foreground/50">→</span>
 						<span className="truncate">{previewPath || "—"}</span>
 					</div>
+
+					{submitError && (
+						<div className="flex items-start gap-2 px-3 py-2 rounded-md bg-red-50 border border-red-200 text-xs text-red-600 dark:bg-red-950 dark:border-red-900 dark:text-red-400">
+							<AlertCircleIcon size={14} className="shrink-0 mt-0.5" />
+							<span>{submitError}</span>
+						</div>
+					)}
 				</div>
 
 				<DialogFooter className="px-5 py-3 rounded-none">
@@ -251,9 +313,10 @@ export function CreateEntryDialog({
 						Cancel
 					</Button>
 					<Button
+						className="shadow-lg h-10"
 						size="lg"
 						onClick={handleCreate}
-						disabled={!name.trim() || loading}
+						disabled={!name.trim() || !!nameError || loading}
 					>
 						{loading
 							? "Creating…"
@@ -284,19 +347,25 @@ function LocationRow({
 		<button
 			onClick={onClick}
 			className={cn(
-				"w-full flex items-center gap-1.5 px-2 py-1.5 text-left text-xs border-b last:border-0 transition-colors",
+				"w-full flex items-center gap-2 py-2 text-left text-xs border-b last:border-0 transition-all duration-200 outline-none",
 				selected
-					? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
-					: "text-muted-foreground hover:bg-muted",
+					? "bg-[#252525] text-[#0072BB] font-medium"
+					: "text-muted-foreground hover:bg-muted/50 hover:text-foreground focus-visible:bg-muted/50",
 			)}
-			style={{ paddingLeft: `${8 + depth * 16}px` }}
+			style={{ paddingLeft: `${12 + depth * 16}px`, paddingRight: "12px" }}
 		>
-			{icon}
-			{label}
+			<span
+				className={cn(
+					"shrink-0 transition-colors",
+					selected ? "text-[#0072BB]" : "text-muted-foreground",
+				)}
+			>
+				{icon}
+			</span>
+			<span className="truncate">{label}</span>
 		</button>
 	);
 }
-
 function buildPreviewPath(location: string, name: string, ext: string) {
 	const n = name.trim();
 	if (!n) return "";
