@@ -31,6 +31,11 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 		setState({ status: "syncing", message, operation });
 	}, []);
 
+	const dismiss = useCallback(() => {
+		if (dismissTimer.current) clearTimeout(dismissTimer.current);
+		setState({ status: "idle", message: "", operation: null });
+	}, []);
+
 	const finishSync = useCallback((success: boolean, message?: string) => {
 		if (dismissTimer.current) clearTimeout(dismissTimer.current);
 
@@ -60,7 +65,7 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
 
 	return (
 		<SyncContext.Provider
-			value={{ state, startSync, finishSync, registerRefresh }}
+			value={{ state, startSync, finishSync, registerRefresh, dismiss }}
 		>
 			{children}
 		</SyncContext.Provider>

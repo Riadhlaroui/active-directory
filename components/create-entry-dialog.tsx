@@ -214,6 +214,7 @@ export function CreateEntryDialog({
 							placeholder={type === "file" ? "index" : "My Folder"}
 							autoFocus
 							className={cn(
+								"rounded-none",
 								nameError && "border-red-500 focus-visible:ring-red-500",
 							)}
 						/>

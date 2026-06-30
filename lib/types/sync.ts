@@ -12,4 +12,5 @@ export type SyncContextValue = {
 	startSync: (message: string, operation: SyncOperation) => void;
 	finishSync: (success: boolean, message?: string) => void;
 	registerRefresh: (fn: () => void | Promise<void>) => void;
+	dismiss: () => void;
 };
