@@ -16,7 +16,13 @@ import { NavGroup } from "@/components/nav-group";
 import { NavProjects } from "./nav-projects";
 import { Project } from "@/lib/types/project";
 
-export function AppSidebar({ projects }: { projects: Project[] }) {
+export function AppSidebar({
+	projects,
+	repoName,
+}: {
+	projects: Project[];
+	repoName: string;
+}) {
 	return (
 		<Sidebar
 			className={cn(
@@ -38,7 +44,7 @@ export function AppSidebar({ projects }: { projects: Project[] }) {
 				{navGroups.map((group, index) => (
 					<NavGroup key={`sidebar-group-${index}`} {...group} />
 				))}
-				<NavProjects initial={projects} />
+				<NavProjects initial={projects} repoName={repoName} />
 			</SidebarContent>
 			<SidebarFooter className="gap-0 p-0">
 				<SidebarMenu className="border-t p-2">

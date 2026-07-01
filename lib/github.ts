@@ -1,18 +1,30 @@
-const owner = process.env.GITHUB_OWNER;
-const repo = process.env.GITHUB_REPO;
-const token = process.env.GITHUB_TOKEN;
+import { getSession } from "./session";
 
-const BASE = `https://api.github.com/repos/${owner}/${repo}/contents`;
+async function getConfig() {
+	const session = await getSession();
 
-const headers = {
-	Authorization: `Bearer ${token}`,
-	Accept: "application/vnd.github+json",
-	"X-GitHub-Api-Version": "2022-11-28",
-	"Content-Type": "application/json",
-};
+	if (!session.isLoggedIn || !session.githubToken || !session.activeRepo) {
+		throw new Error("Not authenticated or no repo selected");
+	}
+
+	const [owner, repo] = session.activeRepo.split("/");
+	return {
+		token: session.githubToken,
+		owner,
+		repo,
+		base: `https://api.github.com/repos/${owner}/${repo}/contents`,
+		headers: {
+			Authorization: `Bearer ${session.githubToken}`,
+			Accept: "application/vnd.github+json",
+			"X-GitHub-Api-Version": "2022-11-28",
+			"Content-Type": "application/json",
+		},
+	};
+}
 
 export async function getFile(path: string) {
-	const res = await fetch(`${BASE}/${path}`, {
+	const { base, headers } = await getConfig();
+	const res = await fetch(`${base}/${path}`, {
 		headers,
 		cache: "no-store",
 	});
@@ -30,10 +42,8 @@ export async function getFile(path: string) {
 }
 
 export async function listDir(path: string) {
-	const res = await fetch(`${BASE}/${path}`, {
-		headers,
-		cache: "no-store",
-	});
+	const { base, headers } = await getConfig();
+	const res = await fetch(`${base}/${path}`, { headers, cache: "no-store" });
 
 	if (res.status === 404) return [];
 	if (!res.ok)
@@ -54,13 +64,15 @@ export async function putFile(
 	message: string,
 	sha?: string,
 ) {
+	const { base, headers } = await getConfig();
+
 	const body: Record<string, string> = {
 		message,
 		content: Buffer.from(content).toString("base64"),
 	};
 	if (sha) body.sha = sha;
 
-	const res = await fetch(`${BASE}/${path}`, {
+	const res = await fetch(`${base}/${path}`, {
 		method: "PUT",
 		headers,
 		body: JSON.stringify(body),
@@ -77,7 +89,8 @@ export async function putFile(
 }
 
 export async function deleteFile(path: string, sha: string, message: string) {
-	const res = await fetch(`${BASE}/${path}`, {
+	const { base, headers } = await getConfig();
+	const res = await fetch(`${base}/${path}`, {
 		method: "DELETE",
 		headers,
 		body: JSON.stringify({ message, sha }),

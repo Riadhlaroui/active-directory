@@ -26,13 +26,7 @@ import {
 import {
 	ContextMenu,
 	ContextMenuContent,
-	ContextMenuGroup,
 	ContextMenuItem,
-	ContextMenuSeparator,
-	ContextMenuShortcut,
-	ContextMenuSub,
-	ContextMenuSubContent,
-	ContextMenuSubTrigger,
 	ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
@@ -44,7 +38,6 @@ import {
 	MoreHorizontalIcon,
 	PencilIcon,
 	Trash2Icon,
-	FileIcon,
 	LoaderIcon,
 } from "lucide-react";
 import { Icon } from "@iconify/react";
@@ -92,7 +85,13 @@ function getFileIcon(filename: string): string {
 	return map[ext] ?? "vscode-icons:default-file";
 }
 
-export function NavProjects({ initial = [] }: { initial?: Project[] }) {
+export function NavProjects({
+	initial = [],
+	repoName = "Storage",
+}: {
+	initial?: Project[];
+	repoName: string;
+}) {
 	const [projects, setProjects] = useState<ProjectWithFiles[]>(initial);
 	const [rootFiles, setRootFiles] = useState<GitHubEntry[]>([]);
 	const [rootFilesLoading, setRootFilesLoading] = useState(true);
@@ -202,14 +201,13 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 	function commitRename(id: string, newName: string) {
 		const originalProject = projects.find((p) => p.id === id);
 		const isNew =
-			!originalProject || originalProject.id !== originalProject.name; // temp UUID means it's new
+			!originalProject || originalProject.id !== originalProject.name;
 
 		setRenamingId(null);
 
 		startTransition(async () => {
 			try {
 				if (isNew && !originalProject?.name) {
-					// brand-new folder (created via inline add — not used anymore but kept for safety)
 					startSync(`Creating folder "${newName}"…`, "create");
 					const created = await createFolder(newName);
 					setProjects((prev) => prev.map((p) => (p.id === id ? created : p)));
@@ -303,7 +301,7 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 					<CollapsibleTrigger asChild>
 						<SidebarGroupLabel className="flex-1 cursor-pointer select-none hover:text-foreground transition-colors">
 							<BriefcaseIcon className="mr-2 size-3.5" />
-							Projects
+							{repoName}
 							<ChevronRightIcon className="ml-auto size-3.5 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
 						</SidebarGroupLabel>
 					</CollapsibleTrigger>
@@ -463,50 +461,6 @@ export function NavProjects({ initial = [] }: { initial?: Project[] }) {
 																<Trash2Icon />
 																Delete
 															</ContextMenuItem>
-															<ContextMenuGroup>
-																<ContextMenuItem>
-																	Back
-																	<ContextMenuShortcut>⌘[</ContextMenuShortcut>
-																</ContextMenuItem>
-																<ContextMenuItem disabled>
-																	Forward
-																	<ContextMenuShortcut>⌘]</ContextMenuShortcut>
-																</ContextMenuItem>
-																<ContextMenuItem>
-																	Reload
-																	<ContextMenuShortcut>⌘R</ContextMenuShortcut>
-																</ContextMenuItem>
-																<ContextMenuSub>
-																	<ContextMenuSubTrigger>
-																		More Tools
-																	</ContextMenuSubTrigger>
-																	<ContextMenuSubContent className="w-44">
-																		<ContextMenuGroup>
-																			<ContextMenuItem>
-																				Save Page...
-																			</ContextMenuItem>
-																			<ContextMenuItem>
-																				Create Shortcut...
-																			</ContextMenuItem>
-																			<ContextMenuItem>
-																				Name Window...
-																			</ContextMenuItem>
-																		</ContextMenuGroup>
-																		<ContextMenuSeparator />
-																		<ContextMenuGroup>
-																			<ContextMenuItem>
-																				Developer Tools
-																			</ContextMenuItem>
-																		</ContextMenuGroup>
-																		<ContextMenuSeparator />
-																		<ContextMenuGroup>
-																			<ContextMenuItem variant="destructive">
-																				Delete
-																			</ContextMenuItem>
-																		</ContextMenuGroup>
-																	</ContextMenuSubContent>
-																</ContextMenuSub>
-															</ContextMenuGroup>
 														</ContextMenuContent>
 													</ContextMenu>
 												</SidebarMenuSubItem>
